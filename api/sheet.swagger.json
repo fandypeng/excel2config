@@ -16,6 +16,43 @@
         "application/json"
     ],
     "paths": {
+        "excel": {
+            "post": {
+                "summary": "excel",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.sheet.service.v1.LoadExcelResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.sheet.service.v1.LoadExcelReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "sheet.service.v1.Sheet"
+                ]
+            }
+        },
         "excel/sheet": {
             "post": {
                 "summary": "excel/sheet",
@@ -52,43 +89,6 @@
                     "sheet.service.v1.Sheet"
                 ]
             }
-        },
-        "excel/sheets": {
-            "post": {
-                "summary": "excel/sheets",
-                "responses": {
-                    "200": {
-                        "description": "A successful response.",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "code": {
-                                    "type": "integer"
-                                },
-                                "message": {
-                                    "type": "string"
-                                },
-                                "data": {
-                                    "$ref": "#/definitions/.sheet.service.v1.LoadExcelResp"
-                                }
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/.sheet.service.v1.LoadExcelReq"
-                        }
-                    }
-                ],
-                "tags": [
-                    "sheet.service.v1.Sheet"
-                ]
-            }
         }
     },
     "definitions": {
@@ -98,12 +98,15 @@
                 "gridKey": {
                     "type": "string"
                 }
-            }
+            },
+            "required": [
+                "gridKey"
+            ]
         },
         ".sheet.service.v1.LoadExcelResp": {
             "type": "object",
             "properties": {
-                "jsonstr": {
+                "content": {
                     "type": "string"
                 }
             }
@@ -114,18 +117,18 @@
                 "gridKey": {
                     "type": "string"
                 },
-                "indexs": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "index": {
+                    "type": "string"
                 }
-            }
+            },
+            "required": [
+                "gridKey"
+            ]
         },
         ".sheet.service.v1.LoadExcelSheetResp": {
             "type": "object",
             "properties": {
-                "jsonstr": {
+                "content": {
                     "type": "string"
                 }
             }

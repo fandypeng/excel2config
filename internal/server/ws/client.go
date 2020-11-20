@@ -3,7 +3,6 @@ package ws
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/prometheus/common/log"
 	"strconv"
@@ -151,7 +150,7 @@ func (c *Client) handleRequest(reqmsg []byte) {
 		rsp.Type = 1
 	}
 	rsp.Data = string(reqmsg)
-	fmt.Println(fmt.Sprintf("uid: %d, receive msg: %v", uid, string(reqmsg)))
+	//fmt.Println(fmt.Sprintf("uid: %d, receive msg: %v", uid, string(reqmsg)))
 	jsonstr, _ := json.Marshal(rsp)
 	mgr.Send2AllClients(c, jsonstr)
 }

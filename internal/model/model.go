@@ -18,49 +18,51 @@ type MergeCell struct {
 	Rs int64 `json:"rs,omitempty"`
 }
 
+type CellValue struct {
+	Bg string   `json:"bg,omitempty"` // 背景颜色
+	Bl int64    `json:"bl,omitempty"` // 0 常规 、 1加粗
+	Cl int64    `json:"cl,omitempty"` // 删除线
+	Ct struct { // celltype 单元格值格式
+		Fa string `json:"fa,omitempty"`
+		S  []struct {
+			Bl int64       `json:"bl,omitempty"`
+			Cl int64       `json:"cl,omitempty"`
+			Fc string      `json:"fc,omitempty"`
+			Ff string      `json:"ff,omitempty"`
+			Fs interface{} `json:"fs,omitempty"`
+			It int64       `json:"it,omitempty"`
+			Un int64       `json:"un,omitempty"`
+			V  string      `json:"v,omitempty"`
+		} `json:"s,omitempty"`
+		T string `json:"t,omitempty"`
+	} `json:"ct,omitempty"`
+	F  string      `json:"f,omitempty"`  // 公式
+	Fc string      `json:"fc,omitempty"` // 字体颜色
+	Ff int64       `json:"ff,omitempty"` // 字体类型
+	Fs interface{} `json:"fs,omitempty"` // 字体大小
+	It int64       `json:"it,omitempty"` // 斜体
+	M  string      `json:"m,omitempty"`  // 显示值
+	Mc *MergeCell  `json:"mc,omitempty"` // 合并单元格
+	Tb string      `json:"tb,omitempty"` // 文本换行，0 截断、1溢出、2 自动换行
+	Tr interface{} `json:"tr,omitempty"` // 竖排文字
+	V  interface{} `json:"v,omitempty"`  // 原始值
+	Ht interface{} `json:"ht,omitempty"` // 水平对齐，0 居中、1 左、2右
+	Vt interface{} `json:"vt,omitempty"` // 垂直对齐，0 中间、1 上、2下
+	Rt interface{} `json:"rt,omitempty"` // 文字旋转角度
+	Ps struct {
+		Height int    `json:"height,omitempty"`
+		Width  int    `json:"width,omitempty"`
+		Left   int    `json:"left,omitempty"`
+		Top    int    `json:"top,omitempty"`
+		IsShow bool   `json:"isshow,omitempty"`
+		Value  string `json:"value,omitempty"`
+	} `json:"ps,omitempty"` //批注
+}
+
 type Cell struct {
-	C int64 `json:"c"`
-	R int64 `json:"r"`
-	V struct {
-		Bg string   `json:"bg,omitempty"` // 背景颜色
-		Bl int64    `json:"bl,omitempty"` // 0 常规 、 1加粗
-		Cl int64    `json:"cl,omitempty"` // 删除线
-		Ct struct { // celltype 单元格值格式
-			Fa string `json:"fa,omitempty"`
-			S  []struct {
-				Bl int64       `json:"bl,omitempty"`
-				Cl int64       `json:"cl,omitempty"`
-				Fc string      `json:"fc,omitempty"`
-				Ff string      `json:"ff,omitempty"`
-				Fs interface{} `json:"fs,omitempty"`
-				It int64       `json:"it,omitempty"`
-				Un int64       `json:"un,omitempty"`
-				V  string      `json:"v,omitempty"`
-			} `json:"s,omitempty"`
-			T string `json:"t,omitempty"`
-		} `json:"ct,omitempty"`
-		F  string      `json:"f,omitempty"`  // 公式
-		Fc string      `json:"fc,omitempty"` // 字体颜色
-		Ff int64       `json:"ff,omitempty"` // 字体类型
-		Fs interface{} `json:"fs,omitempty"` // 字体大小
-		It int64       `json:"it,omitempty"` // 斜体
-		M  string      `json:"m,omitempty"`  // 显示值
-		Mc *MergeCell  `json:"mc,omitempty"` // 合并单元格
-		Tb string      `json:"tb,omitempty"` // 文本换行，0 截断、1溢出、2 自动换行
-		Tr interface{} `json:"tr,omitempty"` // 竖排文字
-		V  interface{} `json:"v,omitempty"`  // 原始值
-		Ht interface{} `json:"ht,omitempty"` // 水平对齐，0 居中、1 左、2右
-		Vt interface{} `json:"vt,omitempty"` // 垂直对齐，0 中间、1 上、2下
-		Rt interface{} `json:"rt,omitempty"` // 文字旋转角度
-		Ps struct {
-			Height int    `json:"height,omitempty"`
-			Width  int    `json:"width,omitempty"`
-			Left   int    `json:"left,omitempty"`
-			Top    int    `json:"top,omitempty"`
-			IsShow bool   `json:"isshow,omitempty"`
-			Value  string `json:"value,omitempty"`
-		} `json:"ps,omitempty"` //批注
-	} `json:"v,omitempty"`
+	C int64     `json:"c"`
+	R int64     `json:"r"`
+	V CellValue `json:"v,omitempty"`
 }
 
 type Sheet struct {
@@ -127,31 +129,11 @@ type Sheet struct {
 		CustomWidth struct {
 			Two int64 `json:"2,omitempty"`
 		} `json:"customWidth,omitempty"`
-		Merge struct {
-			One3_5 struct {
-				C  int64 `json:"c,omitempty"`
-				Cs int64 `json:"cs,omitempty"`
-				R  int64 `json:"r,omitempty"`
-				Rs int64 `json:"rs,omitempty"`
-			} `json:"13_5,omitempty"`
-			One3_7 struct {
-				C  int64 `json:"c,omitempty"`
-				Cs int64 `json:"cs,omitempty"`
-				R  int64 `json:"r,omitempty"`
-				Rs int64 `json:"rs,omitempty"`
-			} `json:"13_7,omitempty"`
-			One4_2 struct {
-				C  int64 `json:"c,omitempty"`
-				Cs int64 `json:"cs,omitempty"`
-				R  int64 `json:"r,omitempty"`
-				Rs int64 `json:"rs,omitempty"`
-			} `json:"14_2,omitempty"`
-			One5_10 struct {
-				C  int64 `json:"c,omitempty"`
-				Cs int64 `json:"cs,omitempty"`
-				R  int64 `json:"r,omitempty"`
-				Rs int64 `json:"rs,omitempty"`
-			} `json:"15_10,omitempty"`
+		Merge map[string]struct {
+			C  int64 `json:"c,omitempty"`
+			Cs int64 `json:"cs,omitempty"`
+			R  int64 `json:"r,omitempty"`
+			Rs int64 `json:"rs,omitempty"`
 		} `json:"merge,omitempty"`
 		Rowhidden struct {
 			Three0 int64 `json:"30,omitempty"`

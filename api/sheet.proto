@@ -12,7 +12,7 @@ option (gogoproto.goproto_getters_all) = false;
 service Sheet {
   rpc LoadExcel(LoadExcelReq) returns (LoadExcelResp) {
     option (google.api.http) = {
-      post: "excel/sheets"
+      post: "excel"
     };
   };
   rpc LoadExcelSheet(LoadExcelSheetReq) returns (LoadExcelSheetResp) {
@@ -23,18 +23,19 @@ service Sheet {
 }
 
 message LoadExcelReq {
-  string gridKey = 1;
+  string gridKey = 1 [(gogoproto.moretags) = 'form:"gridKey" validate:"required"'];
 }
 
 message LoadExcelResp {
-  string  jsonstr = 1;
+  string content = 1;
 }
 
+
 message LoadExcelSheetReq {
-  string gridKey = 1;
-  repeated string indexs = 2;
+  string gridKey = 1 [(gogoproto.moretags) = 'form:"gridKey" validate:"required"'];
+  string indexs = 2 [(gogoproto.moretags) = 'form:"index"'];
 }
 
 message LoadExcelSheetResp {
-  string  jsonstr = 1;
+  string content = 1;
 }

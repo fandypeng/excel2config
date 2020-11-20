@@ -8,10 +8,10 @@ import (
 )
 
 // New new a grpc server.
-func New(svc pb.DemoServer) (ws *warden.Server, err error) {
+func New(svc pb.SheetBMServer) (ws *warden.Server, err error) {
 	var (
 		cfg warden.ServerConfig
-		ct paladin.TOML
+		ct  paladin.TOML
 	)
 	if err = paladin.Get("grpc.toml").Unmarshal(&ct); err != nil {
 		return
@@ -20,7 +20,7 @@ func New(svc pb.DemoServer) (ws *warden.Server, err error) {
 		return
 	}
 	ws = warden.NewServer(&cfg)
-	pb.RegisterDemoServer(ws.Server(), svc)
+	pb.RegisterSheetServer(ws.Server(), svc)
 	ws, err = ws.Start()
 	return
 }

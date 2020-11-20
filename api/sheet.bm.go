@@ -24,7 +24,7 @@ var _ *bm.Context
 var _ context.Context
 var _ binding.StructValidator
 
-var PathSheetLoadExcel = "excel/sheets"
+var PathSheetLoadExcel = "excel"
 var PathSheetLoadExcelSheet = "excel/sheet"
 
 // SheetBMServer is the server API for Sheet service.
@@ -57,6 +57,6 @@ func sheetLoadExcelSheet(c *bm.Context) {
 // RegisterSheetBMServer Register the blademaster route
 func RegisterSheetBMServer(e *bm.Engine, server SheetBMServer) {
 	SheetSvc = server
-	e.POST("excel/sheets", sheetLoadExcel)
+	e.POST("excel", sheetLoadExcel)
 	e.POST("excel/sheet", sheetLoadExcelSheet)
 }

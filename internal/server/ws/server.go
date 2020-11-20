@@ -6,7 +6,6 @@ import (
 	"github.com/go-kratos/kratos/pkg/log"
 	"github.com/gorilla/websocket"
 	"net/http"
-	"strings"
 )
 
 type Server struct {
@@ -34,7 +33,7 @@ func New(svc pb.SheetBMServer) *Server {
 			Handler: nil,
 		},
 	}
-	wss.Handler = defaultHandler(wss)
+	wss.Handler = defaultHandler()
 	wss.s = svc
 	go func() {
 		log.Info("websocket server listen at: 8001")
@@ -47,10 +46,8 @@ func New(svc pb.SheetBMServer) *Server {
 	return wss
 }
 
-func defaultHandler(wss *Server) *http.ServeMux {
+func defaultHandler() *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.Handle("/excel", http.HandlerFunc(wss.LoadExcel))
-	mux.Handle("/excel/sheet", http.HandlerFunc(wss.LoadExcelSheet))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -63,39 +60,4 @@ func defaultHandler(wss *Server) *http.ServeMux {
 		go client.waitAndWrite()
 	})
 	return mux
-}
-
-func (wss *Server) LoadExcel(writer http.ResponseWriter, request *http.Request) {
-	setupHeader(writer)
-	resp, err := wss.s.LoadExcel(context.TODO(), &pb.LoadExcelReq{
-		GridKey: "comment",
-	})
-	if err != nil {
-		writer.Write([]byte("Internal server error, " + err.Error()))
-		return
-	}
-	writer.Write([]byte(resp.Jsonstr))
-}
-
-func (wss *Server) LoadExcelSheet(writer http.ResponseWriter, request *http.Request) {
-	setupHeader(writer)
-	request.ParseForm()
-	index := request.FormValue("index")
-	gridKey := request.FormValue("gridKey")
-	resp, err := wss.s.LoadExcelSheet(context.TODO(), &pb.LoadExcelSheetReq{
-		GridKey: gridKey,
-		Indexs:  strings.Split(index, ","),
-	})
-	if err != nil {
-		writer.Write([]byte("Internal server error, " + err.Error()))
-		return
-	}
-	writer.Write([]byte(resp.Jsonstr))
-}
-
-func setupHeader(writer http.ResponseWriter) {
-	writer.Header().Add("Access-Control-Allow-Origin", "*")
-	writer.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	writer.Header().Add("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
-	writer.Header().Add("Access-Control-Allow-Credentials", "true")
 }

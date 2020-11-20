@@ -41,8 +41,8 @@ func (d *dao) PingMongo(ctx context.Context) error {
 	return nil
 }
 
-func (d *dao) LoadExcel(ctx context.Context, fileName string) (sheets []*model.Sheet, err error) {
-	c := d.mongo.Database(dbname).Collection(fileName)
+func (d *dao) LoadExcel(ctx context.Context, gridKey string) (sheets []*model.Sheet, err error) {
+	c := d.mongo.Database(dbname).Collection(gridKey)
 	//先查出status=1的sheet的完整内容，其他status=0的sheet只取出基础信息，不包含sheet内容
 	singleRes := c.FindOne(ctx, bson.D{{"status", 1}})
 	activeSheet := new(model.Sheet)
@@ -93,8 +93,12 @@ func (d *dao) LoadExcelSheet(ctx context.Context, gridKey string, indexs []strin
 	return
 }
 
-func (d *dao) UpdateExcelSheet(ctx context.Context, fileName string, sheet *model.Sheet) (err error) {
-	//c := d.mongo.Database("sheets").Collection(fileName)
-	//c.UpdateOne()
-	return nil
+func (d *dao) UpdateGridValue(ctx context.Context, gridKey string, req *model.UpdateGridReq) (err error) {
+	c := d.mongo.Database(dbname).Collection(gridKey)
+	filter := bson.D{{"r", req.R}, {"c", req.C}, {"index", req.I}}
+	_, err = c.UpdateOne(ctx, filter, bson.D{{"$set", bson.D{{"v", req.V}}}})
+	if err != nil {
+		log.With("err", err).With("gridKey", gridKey).With("req", req).Errorln("update error")
+	}
+	return err
 }

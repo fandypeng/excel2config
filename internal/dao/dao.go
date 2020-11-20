@@ -26,9 +26,9 @@ type Dao interface {
 	// bts: -nullcache=&model.Article{ID:-1} -check_null_code=$!=nil&&$.ID==-1
 	Article(c context.Context, id int64) (*model.Article, error)
 
-	LoadExcel(c context.Context, fileName string) (sheets []*model.Sheet, err error)
+	LoadExcel(c context.Context, gridKey string) (sheets []*model.Sheet, err error)
 	LoadExcelSheet(c context.Context, gridKey string, indexs []string) (sheets map[string][]model.Cell, err error)
-	UpdateExcelSheet(c context.Context, fileName string, sheet *model.Sheet) (err error)
+	UpdateGridValue(c context.Context, gridKey string, req *model.UpdateGridReq) (err error)
 }
 
 // dao dao.
