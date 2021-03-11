@@ -1,0 +1,539 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "sheet.proto",
+        "version": "1"
+    },
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "consumes": [
+        "application/json",
+        "multipart/form-data"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "excel": {
+            "post": {
+                "summary": "excel",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.sheet.service.v1.LoadExcelResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.sheet.service.v1.LoadExcelReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "sheet.service.v1.Sheet"
+                ]
+            }
+        },
+        "excel/create": {
+            "post": {
+                "summary": "excel/create",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.sheet.service.v1.CreateExcelResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.sheet.service.v1.CreateExcelReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "sheet.service.v1.Sheet"
+                ]
+            }
+        },
+        "excel/delete": {
+            "post": {
+                "summary": "excel/delete",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.sheet.service.v1.DeleteExcelResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.sheet.service.v1.DeleteExcelReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "sheet.service.v1.Sheet"
+                ]
+            }
+        },
+        "excel/export": {
+            "post": {
+                "summary": "excel/export",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.sheet.service.v1.ExportExcelResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.sheet.service.v1.ExportExcelReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "sheet.service.v1.Sheet"
+                ]
+            }
+        },
+        "excel/list": {
+            "get": {
+                "summary": "excel/list",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.sheet.service.v1.ExcelListResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "last_time",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "group_id",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "sheet.service.v1.Sheet"
+                ]
+            }
+        },
+        "excel/sheet": {
+            "post": {
+                "summary": "excel/sheet",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.sheet.service.v1.LoadExcelSheetResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.sheet.service.v1.LoadExcelSheetReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "sheet.service.v1.Sheet"
+                ]
+            }
+        },
+        "excel/sheet_list": {
+            "post": {
+                "summary": "excel/sheet_list",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.sheet.service.v1.SheetListResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.sheet.service.v1.SheetListReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "sheet.service.v1.Sheet"
+                ]
+            }
+        },
+        "excel/update": {
+            "post": {
+                "summary": "excel/update",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.sheet.service.v1.UpdateExcelResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.sheet.service.v1.UpdateExcelReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "sheet.service.v1.Sheet"
+                ]
+            }
+        }
+    },
+    "definitions": {
+        ".sheet.service.v1.CreateExcelReq": {
+            "type": "object",
+            "properties": {
+                "uid": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "group_id": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "uid",
+                "name"
+            ]
+        },
+        ".sheet.service.v1.CreateExcelResp": {
+            "type": "object",
+            "properties": {
+                "eid": {
+                    "type": "string"
+                }
+            }
+        },
+        ".sheet.service.v1.DeleteExcelReq": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id",
+                "name"
+            ]
+        },
+        ".sheet.service.v1.DeleteExcelResp": {
+            "type": "object",
+            "properties": {}
+        },
+        ".sheet.service.v1.ExcelListReq": {
+            "type": "object",
+            "properties": {
+                "last_time": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "group_id": {
+                    "type": "string"
+                }
+            }
+        },
+        ".sheet.service.v1.ExcelListResp": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/.sheet.service.v1.SimpleExcel"
+                    }
+                }
+            }
+        },
+        ".sheet.service.v1.ExportExcelReq": {
+            "type": "object",
+            "properties": {
+                "gridKey": {
+                    "type": "string"
+                },
+                "sheetName": {
+                    "type": "string"
+                },
+                "format": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "gridKey",
+                "sheetName",
+                "format"
+            ]
+        },
+        ".sheet.service.v1.ExportExcelResp": {
+            "type": "object",
+            "properties": {
+                "jsonstr": {
+                    "type": "string"
+                }
+            }
+        },
+        ".sheet.service.v1.LoadExcelReq": {
+            "type": "object",
+            "properties": {
+                "gridKey": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "gridKey"
+            ]
+        },
+        ".sheet.service.v1.LoadExcelResp": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                }
+            }
+        },
+        ".sheet.service.v1.LoadExcelSheetReq": {
+            "type": "object",
+            "properties": {
+                "gridKey": {
+                    "type": "string"
+                },
+                "index": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "gridKey"
+            ]
+        },
+        ".sheet.service.v1.LoadExcelSheetResp": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                }
+            }
+        },
+        ".sheet.service.v1.SheetListReq": {
+            "type": "object",
+            "properties": {
+                "gridKey": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "gridKey"
+            ]
+        },
+        ".sheet.service.v1.SheetListResp": {
+            "type": "object",
+            "properties": {
+                "sheetName": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        ".sheet.service.v1.SimpleExcel": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "createTime": {
+                    "type": "integer"
+                },
+                "editTime": {
+                    "type": "integer"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                }
+            }
+        },
+        ".sheet.service.v1.UpdateExcelReq": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "contributers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "id",
+                "remark"
+            ]
+        },
+        ".sheet.service.v1.UpdateExcelResp": {
+            "type": "object",
+            "properties": {}
+        }
+    }
+}

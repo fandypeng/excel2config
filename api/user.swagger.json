@@ -1,0 +1,370 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "user.proto",
+        "version": "1"
+    },
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "consumes": [
+        "application/json",
+        "multipart/form-data"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "user/info": {
+            "get": {
+                "summary": "user/info",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.user.service.v1.UserInfo"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "uid",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "user.service.v1.User"
+                ]
+            }
+        },
+        "user/login": {
+            "get": {
+                "summary": "user/login",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.user.service.v1.LoginResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "loginType",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer"
+                    },
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "pwd",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "code",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "user.service.v1.User"
+                ]
+            }
+        },
+        "user/logout": {
+            "post": {
+                "summary": "user/logout",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.user.service.v1.LogoutResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.user.service.v1.LogoutReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "user.service.v1.User"
+                ]
+            }
+        },
+        "user/reg": {
+            "get": {
+                "summary": "user/reg",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.user.service.v1.RegisterResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "pwd",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "confirmPwd",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "user.service.v1.User"
+                ]
+            }
+        },
+        "user/search": {
+            "get": {
+                "summary": "user/search",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.user.service.v1.UserSearchResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "user.service.v1.User"
+                ]
+            }
+        }
+    },
+    "definitions": {
+        ".user.service.v1.LoginReq": {
+            "type": "object",
+            "properties": {
+                "loginType": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "pwd": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                }
+            }
+        },
+        ".user.service.v1.LoginResp": {
+            "type": "object",
+            "properties": {
+                "userInfo": {
+                    "$ref": "#/definitions/.user.service.v1.UserInfo"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        ".user.service.v1.LogoutReq": {
+            "type": "object",
+            "properties": {
+                "uid": {
+                    "type": "string"
+                }
+            }
+        },
+        ".user.service.v1.LogoutResp": {
+            "type": "object",
+            "properties": {}
+        },
+        ".user.service.v1.RegisterReq": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "pwd": {
+                    "type": "string"
+                },
+                "confirmPwd": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        ".user.service.v1.RegisterResp": {
+            "type": "object",
+            "properties": {
+                "userInfo": {
+                    "$ref": "#/definitions/.user.service.v1.UserInfo"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        ".user.service.v1.SimpleUserInfo": {
+            "type": "object",
+            "properties": {
+                "uid": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        ".user.service.v1.UserInfo": {
+            "type": "object",
+            "properties": {
+                "uid": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "passwd": {
+                    "type": "string"
+                },
+                "regTime": {
+                    "type": "integer"
+                },
+                "avatar": {
+                    "type": "string"
+                }
+            }
+        },
+        ".user.service.v1.UserInfoReq": {
+            "type": "object",
+            "properties": {
+                "uid": {
+                    "type": "string"
+                }
+            }
+        },
+        ".user.service.v1.UserSearchReq": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        ".user.service.v1.UserSearchResp": {
+            "type": "object",
+            "properties": {
+                "userInfos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/.user.service.v1.SimpleUserInfo"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,413 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "group.proto",
+        "version": "1"
+    },
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "consumes": [
+        "application/json",
+        "multipart/form-data"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "group/add": {
+            "post": {
+                "summary": "group/add",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.group.service.v1.AddGroupResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.group.service.v1.AddGroupReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "group.service.v1.Group"
+                ]
+            }
+        },
+        "group/export_config_to_db": {
+            "post": {
+                "summary": "group/export_config_to_db",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.group.service.v1.ExportConfigToDBResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.group.service.v1.ExportConfigToDBReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "group.service.v1.Group"
+                ]
+            }
+        },
+        "group/get_config_from_db": {
+            "post": {
+                "summary": "group/get_config_from_db",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.group.service.v1.GetConfigFromDBResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.group.service.v1.GetConfigFromDBReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "group.service.v1.Group"
+                ]
+            }
+        },
+        "group/list": {
+            "get": {
+                "summary": "group/list",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.group.service.v1.GroupListResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "group.service.v1.Group"
+                ]
+            }
+        },
+        "group/test_connection": {
+            "post": {
+                "summary": "group/test_connection",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.group.service.v1.TestConnectionResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.group.service.v1.TestConnectionReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "group.service.v1.Group"
+                ]
+            }
+        },
+        "group/update": {
+            "post": {
+                "summary": "group/update",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.group.service.v1.UpdateGroupResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.group.service.v1.UpdateGroupReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "group.service.v1.Group"
+                ]
+            }
+        }
+    },
+    "definitions": {
+        ".group.service.v1.AddGroupReq": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                }
+            }
+        },
+        ".group.service.v1.AddGroupResp": {
+            "type": "object",
+            "properties": {
+                "groupInfo": {
+                    "$ref": "#/definitions/.group.service.v1.GroupInfo"
+                }
+            }
+        },
+        ".group.service.v1.ExportConfigToDBReq": {
+            "type": "object",
+            "properties": {
+                "gridKey": {
+                    "type": "string"
+                },
+                "sheetName": {
+                    "type": "string"
+                }
+            }
+        },
+        ".group.service.v1.ExportConfigToDBResp": {
+            "type": "object",
+            "properties": {}
+        },
+        ".group.service.v1.GetConfigFromDBReq": {
+            "type": "object",
+            "properties": {
+                "gridKey": {
+                    "type": "string"
+                },
+                "sheetName": {
+                    "type": "string"
+                }
+            }
+        },
+        ".group.service.v1.GetConfigFromDBResp": {
+            "type": "object",
+            "properties": {
+                "jsonstr": {
+                    "type": "string"
+                }
+            }
+        },
+        ".group.service.v1.GroupInfo": {
+            "type": "object",
+            "properties": {
+                "gid": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                },
+                "store": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "addTime": {
+                    "type": "integer"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/.user.service.v1.SimpleUserInfo"
+                    }
+                },
+                "RedisDSN": {
+                    "type": "string"
+                },
+                "RedisPassword": {
+                    "type": "string"
+                },
+                "RedisKeyPrefix": {
+                    "type": "string"
+                },
+                "MysqlDSN": {
+                    "type": "string"
+                },
+                "MongodbDSN": {
+                    "type": "string"
+                }
+            }
+        },
+        ".group.service.v1.GroupListReq": {
+            "type": "object",
+            "properties": {}
+        },
+        ".group.service.v1.GroupListResp": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/.group.service.v1.GroupInfo"
+                    }
+                }
+            }
+        },
+        ".group.service.v1.TestConnectionReq": {
+            "type": "object",
+            "properties": {
+                "dsnType": {
+                    "type": "integer"
+                },
+                "dsn": {
+                    "type": "string"
+                },
+                "pwd": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "dsnType",
+                "dsn"
+            ]
+        },
+        ".group.service.v1.TestConnectionResp": {
+            "type": "object",
+            "properties": {
+                "connected": {
+                    "type": "integer"
+                }
+            }
+        },
+        ".group.service.v1.UpdateGroupReq": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "groupInfo": {
+                    "$ref": "#/definitions/.group.service.v1.GroupInfo"
+                }
+            }
+        },
+        ".group.service.v1.UpdateGroupResp": {
+            "type": "object",
+            "properties": {}
+        },
+        ".user.service.v1.SimpleUserInfo": {
+            "type": "object",
+            "properties": {
+                "uid": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
