@@ -24,17 +24,53 @@ var _ *bm.Context
 var _ context.Context
 var _ binding.StructValidator
 
+var PathSheetExcelList = "excel/list"
+var PathSheetCreateExcel = "excel/create"
 var PathSheetLoadExcel = "excel"
 var PathSheetLoadExcelSheet = "excel/sheet"
+var PathSheetUpdateExcel = "excel/update"
+var PathSheetDeleteExcel = "excel/delete"
+var PathSheetExportExcel = "excel/export"
+var PathSheetSheetList = "excel/sheet_list"
 
 // SheetBMServer is the server API for Sheet service.
 type SheetBMServer interface {
+	ExcelList(ctx context.Context, req *ExcelListReq) (resp *ExcelListResp, err error)
+
+	CreateExcel(ctx context.Context, req *CreateExcelReq) (resp *CreateExcelResp, err error)
+
 	LoadExcel(ctx context.Context, req *LoadExcelReq) (resp *LoadExcelResp, err error)
 
 	LoadExcelSheet(ctx context.Context, req *LoadExcelSheetReq) (resp *LoadExcelSheetResp, err error)
+
+	UpdateExcel(ctx context.Context, req *UpdateExcelReq) (resp *UpdateExcelResp, err error)
+
+	DeleteExcel(ctx context.Context, req *DeleteExcelReq) (resp *DeleteExcelResp, err error)
+
+	ExportExcel(ctx context.Context, req *ExportExcelReq) (resp *ExportExcelResp, err error)
+
+	SheetList(ctx context.Context, req *SheetListReq) (resp *SheetListResp, err error)
 }
 
 var SheetSvc SheetBMServer
+
+func sheetExcelList(c *bm.Context) {
+	p := new(ExcelListReq)
+	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
+		return
+	}
+	resp, err := SheetSvc.ExcelList(c, p)
+	c.JSON(resp, err)
+}
+
+func sheetCreateExcel(c *bm.Context) {
+	p := new(CreateExcelReq)
+	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
+		return
+	}
+	resp, err := SheetSvc.CreateExcel(c, p)
+	c.JSON(resp, err)
+}
 
 func sheetLoadExcel(c *bm.Context) {
 	p := new(LoadExcelReq)
@@ -54,9 +90,51 @@ func sheetLoadExcelSheet(c *bm.Context) {
 	c.JSON(resp, err)
 }
 
+func sheetUpdateExcel(c *bm.Context) {
+	p := new(UpdateExcelReq)
+	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
+		return
+	}
+	resp, err := SheetSvc.UpdateExcel(c, p)
+	c.JSON(resp, err)
+}
+
+func sheetDeleteExcel(c *bm.Context) {
+	p := new(DeleteExcelReq)
+	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
+		return
+	}
+	resp, err := SheetSvc.DeleteExcel(c, p)
+	c.JSON(resp, err)
+}
+
+func sheetExportExcel(c *bm.Context) {
+	p := new(ExportExcelReq)
+	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
+		return
+	}
+	resp, err := SheetSvc.ExportExcel(c, p)
+	c.JSON(resp, err)
+}
+
+func sheetSheetList(c *bm.Context) {
+	p := new(SheetListReq)
+	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
+		return
+	}
+	resp, err := SheetSvc.SheetList(c, p)
+	c.JSON(resp, err)
+}
+
 // RegisterSheetBMServer Register the blademaster route
 func RegisterSheetBMServer(e *bm.Engine, server SheetBMServer) {
 	SheetSvc = server
+	e.GET("excel/list", sheetExcelList)
+	e.POST("excel/create", sheetCreateExcel)
 	e.POST("excel", sheetLoadExcel)
 	e.POST("excel/sheet", sheetLoadExcelSheet)
+	e.POST("excel/update", sheetUpdateExcel)
+	e.POST("excel/delete", sheetDeleteExcel)
+	e.POST("excel/export", sheetExportExcel)
+	e.POST("excel/sheet_list", sheetSheetList)
 }

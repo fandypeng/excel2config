@@ -1,3 +1,5 @@
+# github.com/Azure/go-ntlmssp v0.0.0-20200615164410-66371956d46c
+github.com/Azure/go-ntlmssp
 # github.com/BurntSushi/toml v0.3.1
 github.com/BurntSushi/toml
 # github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d
@@ -33,6 +35,11 @@ github.com/cespare/xxhash/v2
 github.com/dgryski/go-farm
 # github.com/fsnotify/fsnotify v1.4.7
 github.com/fsnotify/fsnotify
+# github.com/gin-gonic/gin v1.5.0
+github.com/gin-gonic/gin/binding
+github.com/gin-gonic/gin/internal/json
+# github.com/go-asn1-ber/asn1-ber v1.5.1
+github.com/go-asn1-ber/asn1-ber
 # github.com/go-kratos/kratos v0.5.1-0.20200526160825-521d240568d0
 github.com/go-kratos/kratos/pkg/cache
 github.com/go-kratos/kratos/pkg/cache/memcache
@@ -74,6 +81,8 @@ github.com/go-kratos/kratos/pkg/stat/sys/cpu
 github.com/go-kratos/kratos/pkg/sync/pipeline/fanout
 github.com/go-kratos/kratos/pkg/testing/lich
 github.com/go-kratos/kratos/pkg/time
+# github.com/go-ldap/ldap/v3 v3.2.4
+github.com/go-ldap/ldap/v3
 # github.com/go-ole/go-ole v1.2.4
 github.com/go-ole/go-ole
 github.com/go-ole/go-ole/oleutil
@@ -99,16 +108,23 @@ github.com/golang/protobuf/protoc-gen-go/descriptor
 github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
-github.com/golang/protobuf/ptypes/empty
 github.com/golang/protobuf/ptypes/timestamp
 # github.com/golang/snappy v0.0.2
 github.com/golang/snappy
 # github.com/google/wire v0.4.0
 github.com/google/wire
+# github.com/gorilla/context v1.1.1
+github.com/gorilla/context
+# github.com/gorilla/securecookie v1.1.1
+github.com/gorilla/securecookie
+# github.com/gorilla/sessions v1.2.1
+github.com/gorilla/sessions
 # github.com/gorilla/websocket v1.4.2
 github.com/gorilla/websocket
 # github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
+# github.com/json-iterator/go v1.1.9
+github.com/json-iterator/go
 # github.com/klauspost/compress v1.11.1
 github.com/klauspost/compress/fse
 github.com/klauspost/compress/huff0
@@ -121,6 +137,10 @@ github.com/konsorten/go-windows-terminal-sequences
 github.com/leodido/go-urn
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
 github.com/matttproud/golang_protobuf_extensions/pbutil
+# github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
+github.com/modern-go/concurrent
+# github.com/modern-go/reflect2 v1.0.1
+github.com/modern-go/reflect2
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
 # github.com/prometheus/client_golang v1.5.1
@@ -143,6 +163,8 @@ github.com/shirou/gopsutil/cpu
 github.com/shirou/gopsutil/internal/common
 # github.com/sirupsen/logrus v1.5.0
 github.com/sirupsen/logrus
+# github.com/ugorji/go/codec v1.1.7
+github.com/ugorji/go/codec
 # github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c
 github.com/xdg/scram
 # github.com/xdg/stringprep v1.0.0
@@ -181,6 +203,7 @@ go.mongodb.org/mongo-driver/x/mongo/driver/topology
 go.mongodb.org/mongo-driver/x/mongo/driver/uuid
 go.mongodb.org/mongo-driver/x/mongo/driver/wiremessage
 # golang.org/x/crypto v0.0.0-20201012173705-84dcc777aaee
+golang.org/x/crypto/md4
 golang.org/x/crypto/ocsp
 golang.org/x/crypto/pbkdf2
 # golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
@@ -200,7 +223,11 @@ golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/windows/registry
 golang.org/x/sys/windows/svc/eventlog
-# golang.org/x/text v0.3.3
+# golang.org/x/text v0.3.4
+golang.org/x/text/encoding
+golang.org/x/text/encoding/charmap
+golang.org/x/text/encoding/internal
+golang.org/x/text/encoding/internal/identifier
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
@@ -280,7 +307,6 @@ google.golang.org/protobuf/runtime/protoimpl
 google.golang.org/protobuf/types/descriptorpb
 google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
-google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/timestamppb
 # gopkg.in/alecthomas/kingpin.v2 v2.2.6
 gopkg.in/alecthomas/kingpin.v2

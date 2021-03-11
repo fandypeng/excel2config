@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/descriptor.proto";
+
+// package 命名使用 {appid}.{version} 的方式, version 形如 v1, v2 ..
+package user.service.v1;
+
+option go_package = "api";
+option (gogoproto.goproto_getters_all) = false;
+
+service User {
+  rpc Login(LoginReq) returns (LoginResp) {
+    option (google.api.http) = {
+      get: "user/login",
+    };
+  };
+  rpc Register(RegisterReq) returns (RegisterResp) {
+    option (google.api.http) = {
+      get: "user/reg",
+    };
+  };
+  rpc Logout(LogoutReq) returns (LogoutResp) {
+    option (google.api.http) = {
+      post: "user/logout",
+    };
+  };
+  rpc Info(UserInfoReq) returns (UserInfo) {
+    option (google.api.http) = {
+      get: "user/info",
+    };
+  };
+  rpc Search(UserSearchReq) returns (UserSearchResp) {
+    option (google.api.http) = {
+      get: "user/search",
+    };
+  };
+}
+
+enum LoginType {
+    Common = 0;
+    Ldap = 1;
+    DingDing = 2;
+}
+
+message LoginReq {
+  LoginType loginType = 1 [(gogoproto.moretags) = 'form:"loginType"'];
+  string email = 2 [(gogoproto.moretags) = 'form:"email"'];
+  string pwd = 3 [(gogoproto.moretags) = 'form:"pwd"'];
+  string code = 4 [(gogoproto.moretags) = 'form:"code"'];
+}
+
+message UserInfo {
+  string uid = 1 [(gogoproto.moretags) = 'bson:"_id" json:"id"'];
+  string userName = 2 [(gogoproto.moretags) = 'bson:"username"'];
+  string email = 3 [(gogoproto.moretags) = 'bson:"email"'];
+  string passwd = 4 [(gogoproto.moretags) = 'bson:"passwd" json:"-"'];
+  int64 regTime = 5 [(gogoproto.moretags) = 'bson:"reg_time"'];
+  string avatar = 6 [(gogoproto.moretags) = 'bson:"avatar"'];
+}
+
+message SimpleUserInfo {
+  string uid = 1 [(gogoproto.moretags) = 'bson:"_id" json:"id"'];
+  string userName = 2 [(gogoproto.moretags) = 'bson:"username"'];
+  string avatar = 3 [(gogoproto.moretags) = 'bson:"avatar"'];
+  string role = 4 [(gogoproto.moretags) = 'bson:"role"'];
+}
+
+message LoginResp {
+  UserInfo userInfo = 1;
+  string token = 2;
+}
+
+message RegisterReq {
+  string email = 1 [(gogoproto.moretags) = 'form:"email"'];
+  string pwd = 2 [(gogoproto.moretags) = 'form:"pwd"'];
+  string confirmPwd = 3 [(gogoproto.moretags) = 'form:"confirmPwd"'];
+  string name = 4 [(gogoproto.moretags) = 'form:"name"'];
+}
+
+message RegisterResp {
+  UserInfo userInfo = 1;
+  string token = 2;
+}
+
+message LogoutReq {
+  string uid = 1 [(gogoproto.moretags) = 'bson:"id"'];
+}
+
+message LogoutResp {
+}
+
+message UserInfoReq {
+  string token = 1 [(gogoproto.moretags) = 'form:"uid"'];
+}
+
+message UserSearchReq {
+  string name = 1 [(gogoproto.moretags) = 'bson:"name"'];
+}
+
+message UserSearchResp {
+  repeated SimpleUserInfo userInfos = 1;
+}

@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/descriptor.proto";
 
 // package 命名使用 {appid}.{version} 的方式, version 形如 v1, v2 ..
 package sheet.service.v1;
@@ -10,6 +11,16 @@ option go_package = "api";
 option (gogoproto.goproto_getters_all) = false;
 
 service Sheet {
+  rpc ExcelList(ExcelListReq) returns (ExcelListResp) {
+    option (google.api.http) = {
+      get: "excel/list",
+    };
+  };
+  rpc CreateExcel(CreateExcelReq) returns (CreateExcelResp) {
+    option (google.api.http) = {
+      post: "excel/create",
+    };
+  };
   rpc LoadExcel(LoadExcelReq) returns (LoadExcelResp) {
     option (google.api.http) = {
       post: "excel"
@@ -17,10 +28,61 @@ service Sheet {
   };
   rpc LoadExcelSheet(LoadExcelSheetReq) returns (LoadExcelSheetResp) {
     option (google.api.http) = {
-    post: "excel/sheet"
+      post: "excel/sheet"
+    };
+  };
+  rpc UpdateExcel(UpdateExcelReq) returns (UpdateExcelResp) {
+    option (google.api.http) = {
+      post: "excel/update"
+    };
+  };
+  rpc DeleteExcel(DeleteExcelReq) returns (DeleteExcelResp) {
+    option (google.api.http) = {
+      post: "excel/delete"
+    };
+  };
+  rpc ExportExcel(ExportExcelReq) returns (ExportExcelResp) {
+    option (google.api.http) = {
+      post: "excel/export"
+    };
+  };
+  rpc SheetList(SheetListReq) returns (SheetListResp) {
+    option (google.api.http) = {
+      post: "excel/sheet_list"
     };
   };
 }
+
+message ExcelListReq {
+  int64 lastTime = 1 [(gogoproto.moretags) = 'form:"last_time"'];
+  int64 limit = 2 [(gogoproto.moretags) = 'form:"limit"'];
+  string groupId = 3 [(gogoproto.moretags) = 'form:"group_id"'];
+}
+
+message SimpleExcel {
+  string id = 1 [(gogoproto.moretags) = 'bson:"_id"'];
+  string name = 2 [(gogoproto.moretags) = 'bson:"name"'];
+  int64 createTime = 3 [(gogoproto.moretags) = 'bson:"create_time"'];
+  int64 editTime = 4 [(gogoproto.moretags) = 'bson:"edit_time"'];
+  string owner = 5 [(gogoproto.moretags) = 'bson:"owner"'];
+  string remark = 6 [(gogoproto.moretags) = 'bson:"remark"'];
+}
+
+message ExcelListResp {
+  repeated SimpleExcel list = 1;
+}
+
+message CreateExcelReq {
+  string uid = 1[(gogoproto.moretags) = 'form:"uid" validate:"required"'];
+  string name = 2 [(gogoproto.moretags) = 'form:"name" validate:"required"'];
+  string remark = 3 [(gogoproto.moretags) = 'form:"remark"'];
+  string groupId = 4 [(gogoproto.moretags) = 'form:"group_id"'];
+}
+
+message CreateExcelResp {
+  string eid = 1;
+}
+
 
 message LoadExcelReq {
   string gridKey = 1 [(gogoproto.moretags) = 'form:"gridKey" validate:"required"'];
@@ -38,4 +100,38 @@ message LoadExcelSheetReq {
 
 message LoadExcelSheetResp {
   string content = 1;
+}
+
+message UpdateExcelReq {
+  string id = 1[(gogoproto.moretags) = 'form:"id" validate:"required"'];
+  string remark = 2[(gogoproto.moretags) = 'form:"remark" validate:"required"'];
+  repeated string contributers = 3[(gogoproto.moretags) = 'form:"contributers"'];
+}
+
+message UpdateExcelResp {}
+
+message DeleteExcelReq {
+  string id = 1[(gogoproto.moretags) = 'form:"id" validate:"required"'];
+  string name = 2[(gogoproto.moretags) = 'form:"name" validate:"required"'];
+}
+
+message DeleteExcelResp {}
+
+
+message ExportExcelReq {
+  string gridKey = 1[(gogoproto.moretags) = 'form:"gridKey" validate:"required"'];
+  string sheetName = 2[(gogoproto.moretags) = 'form:"sheetName" validate:"required"'];
+  string format = 3[(gogoproto.moretags) = 'form:"format" validate:"required"'];
+}
+
+message ExportExcelResp {
+  string jsonstr = 1;
+}
+
+message SheetListReq {
+  string gridKey = 1[(gogoproto.moretags) = 'form:"gridKey" validate:"required"'];
+}
+
+message SheetListResp {
+  repeated string sheetName = 1;
 }

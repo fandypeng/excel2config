@@ -1,3 +1,18 @@
 
-# This is a TOML document. Boom~
 demoExpire = "24h"
+
+[Ldap]
+    serverHost = ""
+    bindBaseDn = ""
+    bindPassword = ""
+    searchBaseDn = ""
+    searchBy = ""
+    searchUserName = ""
+
+[Dingtalk]
+    # reference: https://developers.dingtalk.com/document/app/enterprise-internal-application-logon-free
+    corpHost = ""
+    corpId = ""
+    corpSecret = ""
+    # user should join this chat group to obtain login permissions
+    chatId = ""

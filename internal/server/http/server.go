@@ -3,17 +3,21 @@ package http
 import (
 	pb "excel2config/api"
 	"excel2config/internal/model"
+	"excel2config/internal/server/sessions"
+	"excel2config/internal/server/sessions/cookie"
+	"excel2config/internal/service"
 	"github.com/go-kratos/kratos/pkg/conf/paladin"
 	bm "github.com/go-kratos/kratos/pkg/net/http/blademaster"
 )
 
-var svc pb.SheetBMServer
-
 // New new a bm server.
-func New(s pb.SheetBMServer) (engine *bm.Engine, err error) {
+func New(s *service.Service) (engine *bm.Engine, err error) {
 	var (
-		cfg bm.ServerConfig
-		ct  paladin.TOML
+		cfg struct {
+			bm.ServerConfig
+			CrossDomains []string
+		}
+		ct paladin.TOML
 	)
 	if err = paladin.Get("http.toml").Unmarshal(&ct); err != nil {
 		return
@@ -21,20 +25,26 @@ func New(s pb.SheetBMServer) (engine *bm.Engine, err error) {
 	if err = ct.Get("Server").UnmarshalTOML(&cfg); err != nil {
 		return
 	}
-	svc = s
-	engine = bm.DefaultServer(&cfg)
-	engine.Use(bm.CORS([]string{"http://localhost:3000"}))
-	pb.RegisterSheetBMServer(engine, s)
-	initRouter(engine)
+	engine = bm.DefaultServer(&cfg.ServerConfig)
+	engine.Use(s.As.CORS(cfg.CrossDomains))
+	initRouter(engine, s)
 	err = engine.Start()
 	return
 }
 
-func initRouter(e *bm.Engine) {
-	g := e.Group("/faces")
-	{
-		g.GET("/start", howToStart)
-	}
+func initRouter(engine *bm.Engine, s *service.Service) {
+	cookieStore := cookie.NewStore([]byte("secret_cookie"))
+	cookieStore.Options(sessions.Options{
+		Path:   "/",
+		Domain: "http://localhost",
+		MaxAge: 86400,
+		//Secure:   true,
+		//SameSite: http.SameSiteNoneMode,
+	})
+	engine.Use(sessions.Sessions("e2c_session", cookieStore))
+	pb.RegisterSheet(engine, s.As, s)
+	pb.RegisterUser(engine, s.As, s)
+	pb.RegisterGroup(engine, s.As, s)
 }
 
 // example for http request handler.

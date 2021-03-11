@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/descriptor.proto";
+import "user.proto";
+
+// package 命名使用 {appid}.{version} 的方式, version 形如 v1, v2 ..
+package group.service.v1;
+
+option go_package = "api";
+option (gogoproto.goproto_getters_all) = false;
+
+service Group {
+  rpc GroupList(GroupListReq) returns (GroupListResp) {
+    option (google.api.http) = {
+      get: "group/list",
+    };
+  };
+  rpc GroupAdd(AddGroupReq) returns (AddGroupResp) {
+    option (google.api.http) = {
+      post: "group/add",
+    };
+  };
+  rpc GroupUpdate(UpdateGroupReq) returns (UpdateGroupResp) {
+    option (google.api.http) = {
+      post: "group/update",
+    };
+  };
+  rpc TestConnection(TestConnectionReq) returns (TestConnectionResp) {
+    option (google.api.http) = {
+      post: "group/test_connection",
+    };
+  };
+  rpc GetConfigFromDB(GetConfigFromDBReq) returns (GetConfigFromDBResp) {
+    option (google.api.http) = {
+      post: "group/get_config_from_db",
+    };
+  };
+  rpc ExportConfigToDB(ExportConfigToDBReq) returns (ExportConfigToDBResp) {
+    option (google.api.http) = {
+      post: "group/export_config_to_db",
+    };
+  };
+}
+
+message GroupListReq {
+
+}
+
+message GroupInfo {
+  string gid = 1 [(gogoproto.moretags) = 'bson:"_id" json:"id"'];
+  string name = 2 [(gogoproto.moretags) = 'bson:"name"'];
+  string avatar = 3 [(gogoproto.moretags) = 'bson:"avatar"'];
+  string remark = 4 [(gogoproto.moretags) = 'bson:"remark"'];
+  repeated int32 store = 5 [(gogoproto.moretags) = 'bson:"store"'];
+  int64 addTime = 6 [(gogoproto.moretags) = 'bson:"addTime"'];
+  string owner = 7 [(gogoproto.moretags) = 'bson:"owner"'];
+  repeated user.service.v1.SimpleUserInfo members = 8 [(gogoproto.moretags) = 'bson:"members"'];
+  string RedisDSN = 9 [(gogoproto.moretags) = 'bson:"RedisDSN"'];
+  string RedisPassword = 10 [(gogoproto.moretags) = 'bson:"RedisPassword"'];
+  string RedisKeyPrefix = 11 [(gogoproto.moretags) = 'bson:"RedisKeyPrefix"'];
+  string MysqlDSN = 12 [(gogoproto.moretags) = 'bson:"MysqlDSN"'];
+  string MongodbDSN = 13 [(gogoproto.moretags) = 'bson:"MongodbDSN"'];
+
+}
+
+message GroupListResp {
+  repeated GroupInfo list = 1;
+}
+
+message AddGroupReq {
+  string name = 1 [(gogoproto.moretags) = 'form:"name"'];
+  string avatar = 2 [(gogoproto.moretags) = 'form:"avatar"'];
+  string remark = 3 [(gogoproto.moretags) = 'bson:"remark"'];
+}
+
+message AddGroupResp {
+  GroupInfo groupInfo = 1;
+}
+
+
+message UpdateGroupReq {
+  string id = 1 [(gogoproto.moretags) = 'form:"id"'];
+  GroupInfo groupInfo = 2 [(gogoproto.moretags) = 'form:"groupInfo"'];
+}
+
+message UpdateGroupResp {
+
+}
+
+message TestConnectionReq {
+  int32 dsnType = 1 [(gogoproto.moretags) = 'form:"dsnType" validate:"required"'];
+  string dsn = 2 [(gogoproto.moretags) = 'form:"dsn" validate:"required"'];
+  string pwd = 3 [(gogoproto.moretags) = 'form:"pwd"'];
+}
+
+message TestConnectionResp {
+  int32 connected = 1;
+}
+
+message GetConfigFromDBReq {
+  string gridKey = 1;
+  string sheetName = 2;
+}
+
+message GetConfigFromDBResp {
+  string jsonstr = 1;
+}
+
+message ExportConfigToDBReq {
+  string gridKey = 1;
+  string sheetName = 2;
+}
+
+message ExportConfigToDBResp {}
