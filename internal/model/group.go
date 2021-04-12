@@ -14,4 +14,9 @@ type GroupInfo struct {
 	RedisKeyPrefix string           `json:"RedisKeyPrefix,omitempty" bson:"RedisKeyPrefix,omitempty"`
 	MysqlDSN       string           `json:"MysqlDSN,omitempty" bson:"MysqlDSN,omitempty"`
 	MongodbDSN     string           `json:"MongodbDSN,omitempty" bson:"MongodbDSN,omitempty"`
+	GRpcDsn        string           `json:"GRpcDsn,omitempty" bson:"GRpcDsn,omitempty"`
+	GRpcAppKey     string           `json:"GRpcAppKey,omitempty" bson:"GRpcAppKey,omitempty"`
+	GRpcAppSecret  string           `json:"GRpcAppSecret,omitempty" bson:"GRpcAppSecret,omitempty"`
+	IsDev          bool             `json:"IsDev,omitempty" bson:"IsDev"`
+	UnionGroupId   string           `json:"UnionGroupId,omitempty" bson:"UnionGroupId,omitempty"`
 }

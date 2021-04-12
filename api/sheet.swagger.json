@@ -164,6 +164,43 @@
                 ]
             }
         },
+        "excel/export_prod": {
+            "post": {
+                "summary": "excel/export_prod",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.sheet.service.v1.ExportProdExcelResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.sheet.service.v1.ExportProdExcelReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "sheet.service.v1.Sheet"
+                ]
+            }
+        },
         "excel/list": {
             "get": {
                 "summary": "excel/list",
@@ -417,6 +454,37 @@
             ]
         },
         ".sheet.service.v1.ExportExcelResp": {
+            "type": "object",
+            "properties": {
+                "jsonstr": {
+                    "type": "string"
+                }
+            }
+        },
+        ".sheet.service.v1.ExportProdExcelReq": {
+            "type": "object",
+            "properties": {
+                "gridKey": {
+                    "type": "string"
+                },
+                "sheetName": {
+                    "type": "string"
+                },
+                "format": {
+                    "type": "string"
+                },
+                "gid": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "gridKey",
+                "sheetName",
+                "format",
+                "gid"
+            ]
+        },
+        ".sheet.service.v1.ExportProdExcelResp": {
             "type": "object",
             "properties": {
                 "jsonstr": {

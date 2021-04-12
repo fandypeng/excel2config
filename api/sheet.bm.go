@@ -32,6 +32,7 @@ var PathSheetUpdateExcel = "excel/update"
 var PathSheetDeleteExcel = "excel/delete"
 var PathSheetExportExcel = "excel/export"
 var PathSheetSheetList = "excel/sheet_list"
+var PathSheetExportProdExcel = "excel/export_prod"
 
 // SheetBMServer is the server API for Sheet service.
 type SheetBMServer interface {
@@ -50,6 +51,8 @@ type SheetBMServer interface {
 	ExportExcel(ctx context.Context, req *ExportExcelReq) (resp *ExportExcelResp, err error)
 
 	SheetList(ctx context.Context, req *SheetListReq) (resp *SheetListResp, err error)
+
+	ExportProdExcel(ctx context.Context, req *ExportProdExcelReq) (resp *ExportProdExcelResp, err error)
 }
 
 var SheetSvc SheetBMServer
@@ -126,6 +129,15 @@ func sheetSheetList(c *bm.Context) {
 	c.JSON(resp, err)
 }
 
+func sheetExportProdExcel(c *bm.Context) {
+	p := new(ExportProdExcelReq)
+	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
+		return
+	}
+	resp, err := SheetSvc.ExportProdExcel(c, p)
+	c.JSON(resp, err)
+}
+
 // RegisterSheetBMServer Register the blademaster route
 func RegisterSheetBMServer(e *bm.Engine, server SheetBMServer) {
 	SheetSvc = server
@@ -137,4 +149,5 @@ func RegisterSheetBMServer(e *bm.Engine, server SheetBMServer) {
 	e.POST("excel/delete", sheetDeleteExcel)
 	e.POST("excel/export", sheetExportExcel)
 	e.POST("excel/sheet_list", sheetSheetList)
+	e.POST("excel/export_prod", sheetExportProdExcel)
 }

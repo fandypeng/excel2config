@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+// package 命名使用 {appid}.{version} 的方式, version 形如 v1, v2 ..
+package service.v1;
+
+option go_package = ".;proto";
+
+service Databus {
+  rpc UpdateConfig(UpdateConfigReq) returns (UpdateConfigResp) {};
+  rpc GetConfig(GetConfigReq) returns (GetConfigResp) {};
+  rpc SayHello(SayHelloReq) returns (SayHelloResp) {}
+}
+
+message tableHead {
+  repeated string fields = 1;
+  repeated string types = 2;
+  repeated string descs = 3;
+}
+
+message UpdateConfigReq {
+  string name = 1;
+  tableHead head = 2;
+  string content = 3;
+}
+
+message UpdateConfigResp {
+  int32 status = 1;
+  string errMsg = 2;
+}
+
+message GetConfigReq {
+  string name = 1;
+}
+
+message GetConfigResp {
+    string content = 1;
+}
+
+
+message SayHelloReq {
+  string greet = 1;
+}
+
+message SayHelloResp {
+  string response = 1;
+}

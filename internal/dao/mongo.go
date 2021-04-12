@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	pb "excel2config/api"
 	"excel2config/internal/def"
+	"excel2config/internal/helper"
 	"excel2config/internal/model"
 	"github.com/go-kratos/kratos/pkg/conf/paladin"
 	"github.com/go-kratos/kratos/pkg/ecode"
@@ -19,11 +20,12 @@ import (
 )
 
 const (
-	dbname         = "sheets"
-	tableExcelList = "excel_list"
-	tableUserList  = "user_list"
-	tableTokenList = "token_list"
-	tableGroupList = "group_list"
+	dbname                = "sheets"
+	tableExcelList        = "excel_list"
+	tableUserList         = "user_list"
+	tableTokenList        = "token_list"
+	tableGroupList        = "group_list"
+	tableExportRecordList = "export_record_list"
 )
 
 func NewMongo() (m *mongo.Client, cf func(), err error) {
@@ -77,7 +79,7 @@ func (d *dao) LoadExcel(ctx context.Context, gridKey string) (sheets []*model.Sh
 		return nil, err
 	}
 	opt := options.Find()
-	//opt.SetProjection(bson.D{{"celldata", false}})
+	opt.SetProjection(bson.D{{"celldata", false}})
 	opt.SetSort(bson.D{{"order", 1}})
 	corsor, err := c.Find(ctx, bson.D{{"status", 0}, {"deleted", bson.M{"$not": bson.M{"$eq": 1}}}}, opt)
 	if err != nil {
@@ -149,7 +151,9 @@ func (d *dao) LoadSheetByName(ctx context.Context, gridKey, sheetName string) (s
 	res := c.FindOne(ctx, bson.D{{"name", bson.M{"$eq": sheetName}}})
 	err = res.Decode(sheet)
 	if err != nil {
-		log.With("err", err).Errorln("mango decode error")
+		if err != mongo.ErrNoDocuments {
+			log.With("err", err).Errorln("mango decode error")
+		}
 		return
 	}
 	return
@@ -359,6 +363,33 @@ func (d *dao) AddSheet(ctx context.Context, gridKey string, req *model.AddSheet)
 	return err
 }
 
+func (d *dao) UpdateSheet(ctx context.Context, gridKey string, sheet *model.Sheet) (err error) {
+	c := d.mongo.Database(dbname).Collection(gridKey)
+	//先判断sheet是否存在
+	res := c.FindOne(ctx, bson.M{"name": sheet.Name})
+	if res.Err() == mongo.ErrNoDocuments {
+		sheet.Index = "sheet_" + strconv.Itoa(int(time.Now().Unix()))
+		err = d.AddSheet(ctx, gridKey, &model.AddSheet{
+			V: sheet,
+		})
+	} else {
+		oldSheet := &model.Sheet{}
+		err = res.Decode(&oldSheet)
+		if err != nil {
+			return
+		}
+		sheet.Status = oldSheet.Status
+		sheet.Order = oldSheet.Order
+		formatBson, _ := d.format2Bson(sheet)
+		_, err = c.UpdateMany(ctx, bson.M{"name": sheet.Name}, bson.M{"$set": formatBson})
+	}
+	if err != nil {
+		log.With("err", err).With("gridKey", gridKey).With("sheet", sheet).Errorln("update error")
+		return
+	}
+	return err
+}
+
 func (d *dao) CopySheet(ctx context.Context, gridKey string, req *model.CopySheet) (err error) {
 	c := d.mongo.Database(dbname).Collection(gridKey)
 	//先查出原来sheet的数据，修改index和name之后，添加到db中
@@ -403,6 +434,19 @@ func (d *dao) ExcelInfo(ctx context.Context, gridKey string) (excelInfo *model.E
 	err = singleRes.Decode(excelInfo)
 	if err != nil {
 		log.With("err", err).With("gridKey", gridKey).Errorln("mongo decode error")
+		return
+	}
+	return
+}
+
+func (d *dao) ExcelInfoByGroupId(ctx context.Context, gid, name string) (excelInfo *model.Excel, err error) {
+	c := d.mongo.Database(dbname).Collection(tableExcelList)
+	filter := bson.M{"group_id": gid, "name": name}
+	singleRes := c.FindOne(ctx, filter)
+	excelInfo = new(model.Excel)
+	err = singleRes.Decode(excelInfo)
+	if err != nil {
+		log.With("err", err).With("gid", gid).Errorln("mongo decode error")
 		return
 	}
 	return
@@ -473,6 +517,17 @@ func (d *dao) HideOrShowSheet(ctx context.Context, gridKey string, req *model.Hi
 	return err
 }
 
+func (d *dao) RemDeletedSheet(ctx context.Context, gridKey string) (err error) {
+	c := d.mongo.Database(dbname).Collection(gridKey)
+	filter := bson.M{"deleted": 1}
+	_, err = c.DeleteMany(ctx, filter)
+	if err != nil {
+		log.With("err", err).With("gridKey", gridKey).Errorln("delete error")
+		return
+	}
+	return err
+}
+
 func (d *dao) CreateExcel(ctx context.Context, uid, gridKey, remark, groupId string) (eid string, err error) {
 	lc := d.mongo.Database(dbname).Collection(tableExcelList)
 	excel := model.Excel{
@@ -497,13 +552,14 @@ func (d *dao) CreateExcel(ctx context.Context, uid, gridKey, remark, groupId str
 	}
 	c := d.mongo.Database(dbname).Collection(excelId)
 	sheet := &model.Sheet{
-		Celldata: []model.Cell{},
+		Celldata: helper.GetIntroduceCellData(),
 		Column:   50,
-		Index:    "sheet1",
-		Name:     "sheet1",
+		Index:    "sheet_" + strconv.Itoa(int(time.Now().Unix())),
+		Name:     def.DefaultIntroductionSheet,
 		Order:    1,
 		Row:      100,
 		Status:   1,
+		Config:   helper.GetIntroduceSheetConfig(),
 	}
 	formatBson, _ = d.format2Bson(sheet)
 	_, err = c.InsertOne(ctx, formatBson)
@@ -538,9 +594,9 @@ func (d *dao) UpdateExcel(ctx context.Context, id, remark string, contributers [
 	return
 }
 
-func (d *dao) DeleteExcel(ctx context.Context, id, gridKey string) (err error) {
+func (d *dao) DeleteExcel(ctx context.Context, gridKey string) (err error) {
 	c := d.mongo.Database(dbname).Collection(tableExcelList)
-	_id, err := primitive.ObjectIDFromHex(id)
+	_id, err := primitive.ObjectIDFromHex(gridKey)
 	if err != nil {
 		return
 	}

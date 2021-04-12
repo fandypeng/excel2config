@@ -42,10 +42,35 @@ service Group {
       post: "group/export_config_to_db",
     };
   };
+  rpc ExportRecord(ExportRecordReq) returns (ExportRecordResp) {
+    option (google.api.http) = {
+      post: "group/export_record",
+    };
+  };
+  rpc ExportRecordContent(ExportRecordContentReq) returns (ExportRecordContentResp) {
+    option (google.api.http) = {
+      post: "group/export_record_content",
+    };
+  };
+  rpc ExportRollback(ExportRollbackReq) returns (ExportRollbackResp) {
+    option (google.api.http) = {
+      post: "group/export_rollback",
+    };
+  };
+  rpc GenerateAppKeySecret(GenerateAppKeySecretReq) returns (GenerateAppKeySecretResp) {
+    option (google.api.http) = {
+      get: "group/gen_app_key_secret",
+    };
+  };
+  rpc SyncToProd(SyncToProdReq) returns (SyncToProdResp) {
+    option (google.api.http) = {
+      post: "group/sync_to_prod",
+    };
+  };
 }
 
 message GroupListReq {
-
+    string gid = 1 [(gogoproto.moretags) = 'form:"gid"'];
 }
 
 message GroupInfo {
@@ -62,7 +87,11 @@ message GroupInfo {
   string RedisKeyPrefix = 11 [(gogoproto.moretags) = 'bson:"RedisKeyPrefix"'];
   string MysqlDSN = 12 [(gogoproto.moretags) = 'bson:"MysqlDSN"'];
   string MongodbDSN = 13 [(gogoproto.moretags) = 'bson:"MongodbDSN"'];
-
+  string GrpcDSN = 14 [(gogoproto.moretags) = 'bson:"GRpcDsn"'];
+  string GrpcAppKey = 15 [(gogoproto.moretags) = 'bson:"GrpcAppKey"'];
+  string GrpcAppSecret = 16 [(gogoproto.moretags) = 'bson:"GrpcAppSecret"'];
+  bool IsDev = 17 [(gogoproto.moretags) = 'bson:"IsDev"'];
+  string UnionGroupId = 18 [(gogoproto.moretags) = 'bson:"UnionGroupId"'];
 }
 
 message GroupListResp {
@@ -93,6 +122,8 @@ message TestConnectionReq {
   int32 dsnType = 1 [(gogoproto.moretags) = 'form:"dsnType" validate:"required"'];
   string dsn = 2 [(gogoproto.moretags) = 'form:"dsn" validate:"required"'];
   string pwd = 3 [(gogoproto.moretags) = 'form:"pwd"'];
+  string appKey = 4 [(gogoproto.moretags) = 'form:"appKey"'];
+  string appSecret = 5 [(gogoproto.moretags) = 'form:"appSecret"'];
 }
 
 message TestConnectionResp {
@@ -100,8 +131,8 @@ message TestConnectionResp {
 }
 
 message GetConfigFromDBReq {
-  string gridKey = 1;
-  string sheetName = 2;
+  string gridKey = 1[(gogoproto.moretags) = 'form:"gridKey" validate:"required"'];
+  string sheetName = 2[(gogoproto.moretags) = 'form:"sheetName" validate:"required"'];
 }
 
 message GetConfigFromDBResp {
@@ -109,8 +140,59 @@ message GetConfigFromDBResp {
 }
 
 message ExportConfigToDBReq {
-  string gridKey = 1;
-  string sheetName = 2;
+  string gridKey = 1[(gogoproto.moretags) = 'form:"gridKey" validate:"required"'];
+  string sheetName = 2[(gogoproto.moretags) = 'form:"sheetName" validate:"required"'];
+  string remark = 3[(gogoproto.moretags) = 'form:"remark" validate:"required"'];
 }
 
 message ExportConfigToDBResp {}
+
+message GenerateAppKeySecretReq{}
+
+message GenerateAppKeySecretResp {
+  string appKey = 1;
+  string appSecret = 2;
+}
+
+message SyncToProdReq {
+  string gid = 1 [(gogoproto.moretags) = 'form:"gid" validate:"required"'];
+  string gridKey = 2 [(gogoproto.moretags) = 'form:"gridKey" validate:"required"'];
+  string sheetName = 3 [(gogoproto.moretags) = 'form:"sheetName" validate:"required"'];
+}
+
+message SyncToProdResp {}
+
+message ExportRecordReq {
+  string gridKey = 1[(gogoproto.moretags) = 'form:"gridKey" validate:"required"'];
+  string sheetName = 2[(gogoproto.moretags) = 'form:"sheetName" validate:"required"'];
+}
+
+message ExportRecordInfo {
+  string id = 1;
+  string userName = 2;
+  string time = 3;
+  string remark = 4;
+}
+
+message ExportRecordResp {
+  repeated ExportRecordInfo list = 1;
+}
+
+
+message ExportRecordContentReq {
+  string gridKey = 1[(gogoproto.moretags) = 'form:"gridKey" validate:"required"'];
+  string sheetName = 2[(gogoproto.moretags) = 'form:"sheetName" validate:"required"'];
+  string recordId = 3[(gogoproto.moretags) = 'form:"recordId" validate:"required"'];
+}
+
+message ExportRecordContentResp {
+  string jsonstr = 1;
+}
+
+message ExportRollbackReq {
+  string gridKey = 1[(gogoproto.moretags) = 'form:"gridKey" validate:"required"'];
+  string sheetName = 2[(gogoproto.moretags) = 'form:"sheetName" validate:"required"'];
+  string recordId = 3[(gogoproto.moretags) = 'form:"recordId" validate:"required"'];
+}
+
+message ExportRollbackResp {}

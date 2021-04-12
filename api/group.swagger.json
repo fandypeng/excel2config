@@ -90,6 +90,144 @@
                 ]
             }
         },
+        "group/export_record": {
+            "post": {
+                "summary": "group/export_record",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.group.service.v1.ExportRecordResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.group.service.v1.ExportRecordReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "group.service.v1.Group"
+                ]
+            }
+        },
+        "group/export_record_content": {
+            "post": {
+                "summary": "group/export_record_content",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.group.service.v1.ExportRecordContentResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.group.service.v1.ExportRecordContentReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "group.service.v1.Group"
+                ]
+            }
+        },
+        "group/export_rollback": {
+            "post": {
+                "summary": "group/export_rollback",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.group.service.v1.ExportRollbackResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.group.service.v1.ExportRollbackReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "group.service.v1.Group"
+                ]
+            }
+        },
+        "group/gen_app_key_secret": {
+            "get": {
+                "summary": "group/gen_app_key_secret",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.group.service.v1.GenerateAppKeySecretResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "group.service.v1.Group"
+                ]
+            }
+        },
         "group/get_config_from_db": {
             "post": {
                 "summary": "group/get_config_from_db",
@@ -149,6 +287,51 @@
                         }
                     }
                 },
+                "parameters": [
+                    {
+                        "name": "gid",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "group.service.v1.Group"
+                ]
+            }
+        },
+        "group/sync_to_prod": {
+            "post": {
+                "summary": "group/sync_to_prod",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.group.service.v1.SyncToProdResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.group.service.v1.SyncToProdReq"
+                        }
+                    }
+                ],
                 "tags": [
                     "group.service.v1.Group"
                 ]
@@ -260,12 +443,128 @@
                 },
                 "sheetName": {
                     "type": "string"
+                },
+                "remark": {
+                    "type": "string"
                 }
-            }
+            },
+            "required": [
+                "gridKey",
+                "sheetName",
+                "remark"
+            ]
         },
         ".group.service.v1.ExportConfigToDBResp": {
             "type": "object",
             "properties": {}
+        },
+        ".group.service.v1.ExportRecordContentReq": {
+            "type": "object",
+            "properties": {
+                "gridKey": {
+                    "type": "string"
+                },
+                "sheetName": {
+                    "type": "string"
+                },
+                "recordId": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "gridKey",
+                "sheetName",
+                "recordId"
+            ]
+        },
+        ".group.service.v1.ExportRecordContentResp": {
+            "type": "object",
+            "properties": {
+                "jsonstr": {
+                    "type": "string"
+                }
+            }
+        },
+        ".group.service.v1.ExportRecordInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "remark": {
+                    "type": "string"
+                }
+            }
+        },
+        ".group.service.v1.ExportRecordReq": {
+            "type": "object",
+            "properties": {
+                "gridKey": {
+                    "type": "string"
+                },
+                "sheetName": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "gridKey",
+                "sheetName"
+            ]
+        },
+        ".group.service.v1.ExportRecordResp": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/.group.service.v1.ExportRecordInfo"
+                    }
+                }
+            }
+        },
+        ".group.service.v1.ExportRollbackReq": {
+            "type": "object",
+            "properties": {
+                "gridKey": {
+                    "type": "string"
+                },
+                "sheetName": {
+                    "type": "string"
+                },
+                "recordId": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "gridKey",
+                "sheetName",
+                "recordId"
+            ]
+        },
+        ".group.service.v1.ExportRollbackResp": {
+            "type": "object",
+            "properties": {}
+        },
+        ".group.service.v1.GenerateAppKeySecretReq": {
+            "type": "object",
+            "properties": {}
+        },
+        ".group.service.v1.GenerateAppKeySecretResp": {
+            "type": "object",
+            "properties": {
+                "appKey": {
+                    "type": "string"
+                },
+                "appSecret": {
+                    "type": "string"
+                }
+            }
         },
         ".group.service.v1.GetConfigFromDBReq": {
             "type": "object",
@@ -276,7 +575,11 @@
                 "sheetName": {
                     "type": "string"
                 }
-            }
+            },
+            "required": [
+                "gridKey",
+                "sheetName"
+            ]
         },
         ".group.service.v1.GetConfigFromDBResp": {
             "type": "object",
@@ -333,12 +636,31 @@
                 },
                 "MongodbDSN": {
                     "type": "string"
+                },
+                "GrpcDSN": {
+                    "type": "string"
+                },
+                "GrpcAppKey": {
+                    "type": "string"
+                },
+                "GrpcAppSecret": {
+                    "type": "string"
+                },
+                "IsDev": {
+                    "type": "boolean"
+                },
+                "UnionGroupId": {
+                    "type": "string"
                 }
             }
         },
         ".group.service.v1.GroupListReq": {
             "type": "object",
-            "properties": {}
+            "properties": {
+                "gid": {
+                    "type": "string"
+                }
+            }
         },
         ".group.service.v1.GroupListResp": {
             "type": "object",
@@ -351,6 +673,29 @@
                 }
             }
         },
+        ".group.service.v1.SyncToProdReq": {
+            "type": "object",
+            "properties": {
+                "gid": {
+                    "type": "string"
+                },
+                "gridKey": {
+                    "type": "string"
+                },
+                "sheetName": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "gid",
+                "gridKey",
+                "sheetName"
+            ]
+        },
+        ".group.service.v1.SyncToProdResp": {
+            "type": "object",
+            "properties": {}
+        },
         ".group.service.v1.TestConnectionReq": {
             "type": "object",
             "properties": {
@@ -361,6 +706,12 @@
                     "type": "string"
                 },
                 "pwd": {
+                    "type": "string"
+                },
+                "appKey": {
+                    "type": "string"
+                },
+                "appSecret": {
                     "type": "string"
                 }
             },

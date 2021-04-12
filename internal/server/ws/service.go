@@ -59,6 +59,7 @@ func initHandlers(s *service) map[string]handler {
 func (s *service) readAndServe() {
 	defer func() {
 		s.Close()
+		s.remDeletedSheetWhenLeave()
 	}()
 	s.setReadOpts()
 	for {
@@ -71,6 +72,7 @@ func (s *service) readAndServe() {
 				log.Errorln("ws error: %v", err)
 			}
 			log.With("err", err).Warnln("ws close")
+			s.remDeletedSheetWhenLeave()
 			break
 		}
 		reqmsg, err := s.ungzip(message)
@@ -303,7 +305,7 @@ func (s *service) deleteSheet(ctx context.Context, reqmsg []byte) {
 		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
 		return
 	}
-	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 	err = s.d.DeleteSheet(ctx, s.gridKey, req)
 	if err != nil {
@@ -368,5 +370,14 @@ func (s *service) hideOrShowSheet(ctx context.Context, reqmsg []byte) {
 	err = s.d.HideOrShowSheet(ctx, s.gridKey, req)
 	if err != nil {
 		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("add sheet failed")
+	}
+}
+
+func (s *service) remDeletedSheetWhenLeave() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	err := s.d.RemDeletedSheet(ctx, s.gridKey)
+	if err != nil {
+		log.With("err", err).With("gridKey", s.gridKey).Errorln("rem deleted sheet failed")
 	}
 }

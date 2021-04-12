@@ -60,6 +60,16 @@ type Excel struct {
 	Contributers []string `json:"contributers" bson:"contributers"`
 }
 
+type ExportRecord struct {
+	Id        string `json:"id,omitempty" bson:"_id,omitempty"`
+	GridKey   string `json:"gridKey" bson:"gridKey"`
+	SheetName string `json:"sheetName" bson:"sheetName"`
+	UserName  string `json:"userName" bson:"userName"`
+	Time      int64  `json:"time" bson:"time"`
+	Remark    string `json:"remark" bson:"remark"`
+	Sheet     *Sheet `json:"sheet" bson:"sheet"`
+}
+
 type FormatSheet struct {
 	Fields  []string
 	Types   []string
@@ -110,6 +120,9 @@ func (s *Sheet) Format() (formatSheet *FormatSheet, err error) {
 		if cell.V.V == 0 || cell.V.V == "" || cell.V.V == nil || int(cell.C) >= fieldCount {
 			continue
 		}
+		if len(content) < int(cell.R) {
+			continue
+		}
 		if int(cell.R) >= len(content) {
 			content = append(content, make(map[int]interface{}))
 		}
@@ -125,11 +138,18 @@ func (s *Sheet) Format() (formatSheet *FormatSheet, err error) {
 			continue
 		}
 		rowContent := make(map[string]interface{})
-		for col, val := range columns {
-			if col >= len(fields) {
-				continue
+		for k, field := range fields {
+			var val interface{}
+			if types != nil && k < len(types) {
+				if types[k] == "string" {
+					val = ""
+				} else {
+					val = 0
+				}
 			}
-			field := fields[col]
+			if v, exist := columns[k]; exist {
+				val = v
+			}
 			rowContent[field] = val
 		}
 		res = append(res, rowContent)

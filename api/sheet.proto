@@ -51,6 +51,11 @@ service Sheet {
       post: "excel/sheet_list"
     };
   };
+  rpc ExportProdExcel(ExportProdExcelReq) returns (ExportProdExcelResp) {
+    option (google.api.http) = {
+      post: "excel/export_prod"
+    };
+  };
 }
 
 message ExcelListReq {
@@ -127,6 +132,19 @@ message ExportExcelReq {
 message ExportExcelResp {
   string jsonstr = 1;
 }
+
+
+message ExportProdExcelReq {
+  string gridKey = 1[(gogoproto.moretags) = 'form:"gridKey" validate:"required"'];
+  string sheetName = 2[(gogoproto.moretags) = 'form:"sheetName" validate:"required"'];
+  string format = 3[(gogoproto.moretags) = 'form:"format" validate:"required"'];
+  string gid = 4[(gogoproto.moretags) = 'form:"gid" validate:"required"'];
+}
+
+message ExportProdExcelResp {
+  string jsonstr = 1;
+}
+
 
 message SheetListReq {
   string gridKey = 1[(gogoproto.moretags) = 'form:"gridKey" validate:"required"'];

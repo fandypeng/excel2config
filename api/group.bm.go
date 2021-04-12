@@ -30,6 +30,11 @@ var PathGroupGroupUpdate = "group/update"
 var PathGroupTestConnection = "group/test_connection"
 var PathGroupGetConfigFromDB = "group/get_config_from_db"
 var PathGroupExportConfigToDB = "group/export_config_to_db"
+var PathGroupExportRecord = "group/export_record"
+var PathGroupExportRecordContent = "group/export_record_content"
+var PathGroupExportRollback = "group/export_rollback"
+var PathGroupGenerateAppKeySecret = "group/gen_app_key_secret"
+var PathGroupSyncToProd = "group/sync_to_prod"
 
 // GroupBMServer is the server API for Group service.
 type GroupBMServer interface {
@@ -44,6 +49,16 @@ type GroupBMServer interface {
 	GetConfigFromDB(ctx context.Context, req *GetConfigFromDBReq) (resp *GetConfigFromDBResp, err error)
 
 	ExportConfigToDB(ctx context.Context, req *ExportConfigToDBReq) (resp *ExportConfigToDBResp, err error)
+
+	ExportRecord(ctx context.Context, req *ExportRecordReq) (resp *ExportRecordResp, err error)
+
+	ExportRecordContent(ctx context.Context, req *ExportRecordContentReq) (resp *ExportRecordContentResp, err error)
+
+	ExportRollback(ctx context.Context, req *ExportRollbackReq) (resp *ExportRollbackResp, err error)
+
+	GenerateAppKeySecret(ctx context.Context, req *GenerateAppKeySecretReq) (resp *GenerateAppKeySecretResp, err error)
+
+	SyncToProd(ctx context.Context, req *SyncToProdReq) (resp *SyncToProdResp, err error)
 }
 
 var GroupSvc GroupBMServer
@@ -102,6 +117,51 @@ func groupExportConfigToDB(c *bm.Context) {
 	c.JSON(resp, err)
 }
 
+func groupExportRecord(c *bm.Context) {
+	p := new(ExportRecordReq)
+	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
+		return
+	}
+	resp, err := GroupSvc.ExportRecord(c, p)
+	c.JSON(resp, err)
+}
+
+func groupExportRecordContent(c *bm.Context) {
+	p := new(ExportRecordContentReq)
+	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
+		return
+	}
+	resp, err := GroupSvc.ExportRecordContent(c, p)
+	c.JSON(resp, err)
+}
+
+func groupExportRollback(c *bm.Context) {
+	p := new(ExportRollbackReq)
+	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
+		return
+	}
+	resp, err := GroupSvc.ExportRollback(c, p)
+	c.JSON(resp, err)
+}
+
+func groupGenerateAppKeySecret(c *bm.Context) {
+	p := new(GenerateAppKeySecretReq)
+	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
+		return
+	}
+	resp, err := GroupSvc.GenerateAppKeySecret(c, p)
+	c.JSON(resp, err)
+}
+
+func groupSyncToProd(c *bm.Context) {
+	p := new(SyncToProdReq)
+	if err := c.BindWith(p, binding.Default(c.Request.Method, c.Request.Header.Get("Content-Type"))); err != nil {
+		return
+	}
+	resp, err := GroupSvc.SyncToProd(c, p)
+	c.JSON(resp, err)
+}
+
 // RegisterGroupBMServer Register the blademaster route
 func RegisterGroupBMServer(e *bm.Engine, server GroupBMServer) {
 	GroupSvc = server
@@ -111,4 +171,9 @@ func RegisterGroupBMServer(e *bm.Engine, server GroupBMServer) {
 	e.POST("group/test_connection", groupTestConnection)
 	e.POST("group/get_config_from_db", groupGetConfigFromDB)
 	e.POST("group/export_config_to_db", groupExportConfigToDB)
+	e.POST("group/export_record", groupExportRecord)
+	e.POST("group/export_record_content", groupExportRecordContent)
+	e.POST("group/export_rollback", groupExportRollback)
+	e.GET("group/gen_app_key_secret", groupGenerateAppKeySecret)
+	e.POST("group/sync_to_prod", groupSyncToProd)
 }

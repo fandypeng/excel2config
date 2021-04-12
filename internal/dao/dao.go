@@ -30,8 +30,9 @@ type Dao interface {
 	ExcelList(c context.Context, lastTime, limit int64, groupId string) (list []*pb.SimpleExcel, err error)
 	CreateExcel(c context.Context, uid, gridKey, remark, groupId string) (eid string, err error)
 	UpdateExcel(c context.Context, id, remark string, contributers []string) (err error)
-	DeleteExcel(c context.Context, id, gridKey string) (err error)
+	DeleteExcel(c context.Context, gridKey string) (err error)
 	ExcelInfo(c context.Context, gridKey string) (excelInfo *model.Excel, err error)
+	ExcelInfoByGroupId(c context.Context, groupId, name string) (excelInfo *model.Excel, err error)
 
 	LoadExcel(c context.Context, gridKey string) (sheets []*model.Sheet, err error)
 	LoadExcelSheet(c context.Context, gridKey string, indexs []string) (sheets map[string][]model.Cell, err error)
@@ -46,12 +47,14 @@ type Dao interface {
 	UpdateFilter(c context.Context, gridKey string, req *model.UpdateFilter) (err error)
 
 	AddSheet(c context.Context, gridKey string, req *model.AddSheet) (err error)
+	UpdateSheet(c context.Context, gridKey string, sheet *model.Sheet) (err error)
 	CopySheet(c context.Context, gridKey string, req *model.CopySheet) (err error)
 	DeleteSheet(c context.Context, gridKey string, req *model.DeleteSheet) (err error)
 	RecoverSheet(c context.Context, gridKey string, req *model.RecoverSheet) (err error)
 	UpdateSheetOrder(c context.Context, gridKey string, req *model.UpdateSheetOrder) (err error)
 	ToggleSheet(c context.Context, gridKey string, req *model.ToggleSheet) (err error)
 	HideOrShowSheet(c context.Context, gridKey string, req *model.HideOrShowSheet) (err error)
+	RemDeletedSheet(c context.Context, gridKey string) (err error)
 
 	GetUser(c context.Context, email string) (userInfo *model.UserInfo, err error)
 	GetUserInfos(c context.Context, uids []string) (userInfos map[string]*model.UserInfo, err error)
@@ -61,10 +64,14 @@ type Dao interface {
 	SaveToken(c context.Context, uid, token string) (err error)
 	GetUserInfosByKeyword(c context.Context, keyword string) (userInfos map[string]*model.SimpleUserInfo, err error)
 
-	GroupList(c context.Context, uid string) (groupList []*model.GroupInfo, err error)
+	GroupList(c context.Context, uid, gid string) (groupList []*model.GroupInfo, err error)
 	GroupAdd(c context.Context, groupInfo *model.GroupInfo) (groupId string, err error)
 	GroupUpdate(c context.Context, groupInfo *model.GroupInfo) (err error)
 	GroupInfo(c context.Context, groupId string) (groupInfo *model.GroupInfo, err error)
+
+	AddExportRecord(c context.Context, record *model.ExportRecord) (err error)
+	GetExportRecordList(c context.Context, gridKey, sheetName string) (list []model.ExportRecord, err error)
+	GetExportRecord(c context.Context, gridKey, sheetName, recordId string) (record *model.ExportRecord, err error)
 }
 
 // dao dao.

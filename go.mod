@@ -1,9 +1,10 @@
 module excel2config
 
-go 1.13
+go 1.14
 
 require (
 	github.com/aws/aws-sdk-go v1.35.8 // indirect
+	github.com/fandypeng/e2cdatabus v0.0.0-20210401100712-4f1331033c0e
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-kratos/kratos v0.5.1-0.20200526160825-521d240568d0
 	github.com/go-ldap/ldap/v3 v3.2.4
@@ -20,10 +21,8 @@ require (
 	golang.org/x/crypto v0.0.0-20201012173705-84dcc777aaee // indirect
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 	golang.org/x/sync v0.0.0-20201008141435-b3e1573b7520 // indirect
-	golang.org/x/sys v0.0.0-20201101102859-da207088b7d1 // indirect
 	golang.org/x/text v0.3.4
 	google.golang.org/genproto v0.0.0-20201104152603-2e45c02ce95c
 	google.golang.org/grpc v1.28.1
-	google.golang.org/protobuf v1.25.0 // indirect
-	gopkg.in/yaml.v2 v2.2.8
+	gopkg.in/yaml.v2 v2.4.0
 )

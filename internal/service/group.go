@@ -8,6 +8,8 @@ import (
 	"excel2config/internal/helper"
 	"excel2config/internal/model"
 	"excel2config/internal/server/sessions"
+	"github.com/fandypeng/e2cdatabus/proto"
+	e2c "github.com/fandypeng/e2cdatabus/rpcclient"
 	"github.com/go-kratos/kratos/pkg/cache/redis"
 	"github.com/go-kratos/kratos/pkg/database/sql"
 	"github.com/go-kratos/kratos/pkg/ecode"
@@ -30,7 +32,7 @@ func (s *Service) GroupList(ctx context.Context, req *pb.GroupListReq) (resp *pb
 		err = ecode.Int(int(def.ErrNeedLogin))
 		return
 	}
-	list, err := s.dao.GroupList(ctx, uid)
+	list, err := s.dao.GroupList(ctx, uid, req.Gid)
 	if err != nil {
 		return
 	}
@@ -44,6 +46,7 @@ func (s *Service) GroupList(ctx context.Context, req *pb.GroupListReq) (resp *pb
 	return
 }
 
+// 添加项目的时候，新建两个项目，一个测试环境，一个正式环境。添加Excel的时候也是两个环境都添加。
 func (s *Service) GroupAdd(ctx context.Context, req *pb.AddGroupReq) (resp *pb.AddGroupResp, err error) {
 	sess := sessions.Default(ctx.(*bm.Context))
 	var uid string
@@ -54,7 +57,11 @@ func (s *Service) GroupAdd(ctx context.Context, req *pb.AddGroupReq) (resp *pb.A
 		err = ecode.Int(int(def.ErrNeedLogin))
 		return
 	}
-	groupInfo := &model.GroupInfo{
+	if len(req.Name) == 0 {
+		err = ecode.Int(int(def.ErrInvalidParam))
+		return
+	}
+	devGroupInfo := &model.GroupInfo{
 		Name:    req.Name,
 		Avatar:  req.Avatar,
 		Remark:  req.Remark,
@@ -62,14 +69,29 @@ func (s *Service) GroupAdd(ctx context.Context, req *pb.AddGroupReq) (resp *pb.A
 		AddTime: time.Now().Unix(),
 		Owner:   uid,
 		Members: []model.SimpleUserInfo{{Uid: uid}},
+		IsDev:   true,
 	}
-	gid, err := s.dao.GroupAdd(ctx, groupInfo)
+	var prodGid string
+	gid, err := s.dao.GroupAdd(ctx, devGroupInfo)
+	if err == nil {
+		prodGroupInfo := model.GroupInfo{}
+		prodGroupInfo = *devGroupInfo
+		prodGroupInfo.IsDev = false
+		prodGroupInfo.UnionGroupId = gid
+		prodGroupInfo.Name += "正式环境"
+		prodGid, err = s.dao.GroupAdd(ctx, &prodGroupInfo)
+	}
+	if err == nil {
+		devGroupInfo.Gid = gid
+		devGroupInfo.UnionGroupId = prodGid
+		err = s.dao.GroupUpdate(ctx, devGroupInfo)
+	}
 	if err != nil {
 		return
 	}
-	groupInfo.Gid = gid
+	devGroupInfo.Gid = gid
 	resp = &pb.AddGroupResp{
-		GroupInfo: s.copyGroupInfo(ctx, groupInfo),
+		GroupInfo: s.copyGroupInfo(ctx, devGroupInfo),
 	}
 	return
 }
@@ -117,6 +139,11 @@ func (s *Service) GroupUpdate(ctx context.Context, req *pb.UpdateGroupReq) (resp
 		RedisKeyPrefix: req.GroupInfo.RedisKeyPrefix,
 		MysqlDSN:       req.GroupInfo.MysqlDSN,
 		MongodbDSN:     req.GroupInfo.MongodbDSN,
+		GRpcDsn:        req.GroupInfo.GrpcDSN,
+		GRpcAppKey:     req.GroupInfo.GrpcAppKey,
+		GRpcAppSecret:  req.GroupInfo.GrpcAppSecret,
+		IsDev:          req.GroupInfo.IsDev,
+		UnionGroupId:   req.GroupInfo.UnionGroupId,
 	}
 	err = s.dao.GroupUpdate(ctx, groupInfo)
 	if err != nil {
@@ -168,11 +195,44 @@ func (s *Service) TestConnection(ctx context.Context, req *pb.TestConnectionReq)
 			return
 		}
 		client.Disconnect(ctx)
+	case def.DsnTypeRpc:
+		var client proto.DatabusClient
+		var greetResp *proto.SayHelloResp
+		var connErr error
+		client, connErr = e2c.NewRpcClient(e2c.Conf{
+			ServerAddr: req.Dsn,
+			AppKey:     req.AppKey,
+			AppSecret:  req.AppSecret,
+		})
+		if connErr == nil {
+			greetResp, connErr = client.SayHello(ctx, &proto.SayHelloReq{Greet: "excel2config greet"})
+		}
+		if connErr != nil || len(greetResp.Response) == 0 {
+			log.Errorw(ctx, "mongodb ping error, connErr: ", connErr)
+			resp.Connected = 0
+			return
+		}
 	}
 	return
 }
 
 func (s *Service) ExportConfigToDB(ctx context.Context, req *pb.ExportConfigToDBReq) (resp *pb.ExportConfigToDBResp, err error) {
+	sess := sessions.Default(ctx.(*bm.Context))
+	var uid string
+	uidInterface := sess.Get("uid")
+	if uidInterface != nil {
+		uid = uidInterface.(string)
+	} else {
+		err = ecode.Int(int(def.ErrNeedLogin))
+		return
+	}
+	userInfo, err := s.dao.GetUserByUid(ctx, uid)
+	if err != nil {
+		log.Errorw(ctx, "get user info error", err)
+		err = ecode.Int(int(def.ErrNeedLogin))
+		return
+	}
+
 	excelInfo, err := s.dao.ExcelInfo(ctx, req.GridKey)
 	if err != nil {
 		log.Errorw(ctx, "ws conn gridKey not exist, gridKey: ", req.GridKey)
@@ -250,40 +310,75 @@ func (s *Service) ExportConfigToDB(ctx context.Context, req *pb.ExportConfigToDB
 				return
 			}
 		case def.DsnTypeMongodb:
-			//client, connErr := mongo.NewClient(options.Client().ApplyURI(groupInfo.MongodbDSN))
-			//if connErr != nil {
-			//	log.Errorw(ctx, "mongodb new config error, connErr: ", connErr)
-			//	return
-			//}
-			//connErr = client.Connect(ctx)
-			//if connErr != nil {
-			//	log.Errorw(ctx, "mongodb conn error, connErr: ", connErr)
-			//	return
-			//}
-			//if connErr := client.Ping(ctx, readpref.Primary()); connErr != nil {
-			//	log.Errorw(ctx, "mongodb ping error, connErr: ", connErr)
-			//	client.Disconnect(ctx)
-			//	return
-			//}
-			//filter := bson.M{}
-			//collections, err := client.Database(def.DefaultMongoDataBaseName).ListCollectionNames(ctx, filter)
-			//if err != nil {
-			//	log.Errorw(ctx, "mongodb list collections error, err: ", err)
-			//	client.Disconnect(ctx)
-			//	return
-			//}
-			//if !helper.Contains(collections, req.SheetName) {
-			//	err = client.Database(def.DefaultMongoDataBaseName).CreateCollection(ctx, req.SheetName)
-			//	if err != nil {
-			//		log.Errorw(ctx, "mongodb list collections error, err: ", err)
-			//		client.Disconnect(ctx)
-			//		return
-			//	}
-			//}
-			//c := client.Database(def.DefaultMongoDataBaseName).Collection(req.SheetName)
-			//client.Disconnect(ctx)
+		//client, connErr := mongo.NewClient(options.Client().ApplyURI(groupInfo.MongodbDSN))
+		//if connErr != nil {
+		//	log.Errorw(ctx, "mongodb new config error, connErr: ", connErr)
+		//	return
+		//}
+		//connErr = client.Connect(ctx)
+		//if connErr != nil {
+		//	log.Errorw(ctx, "mongodb conn error, connErr: ", connErr)
+		//	return
+		//}
+		//if connErr := client.Ping(ctx, readpref.Primary()); connErr != nil {
+		//	log.Errorw(ctx, "mongodb ping error, connErr: ", connErr)
+		//	client.Disconnect(ctx)
+		//	return
+		//}
+		//filter := bson.M{}
+		//collections, err := client.Database(def.DefaultMongoDataBaseName).ListCollectionNames(ctx, filter)
+		//if err != nil {
+		//	log.Errorw(ctx, "mongodb list collections error, err: ", err)
+		//	client.Disconnect(ctx)
+		//	return
+		//}
+		//if !helper.Contains(collections, req.SheetName) {
+		//	err = client.Database(def.DefaultMongoDataBaseName).CreateCollection(ctx, req.SheetName)
+		//	if err != nil {
+		//		log.Errorw(ctx, "mongodb list collections error, err: ", err)
+		//		client.Disconnect(ctx)
+		//		return
+		//	}
+		//}
+		//c := client.Database(def.DefaultMongoDataBaseName).Collection(req.SheetName)
+		//client.Disconnect(ctx)
+		case def.DsnTypeRpc:
+			var client proto.DatabusClient
+			var rpcResp *proto.UpdateConfigResp
+			var connErr error
+			client, connErr = e2c.NewRpcClient(e2c.Conf{
+				ServerAddr: groupInfo.GRpcDsn,
+				AppKey:     groupInfo.GRpcAppKey,
+				AppSecret:  groupInfo.GRpcAppSecret,
+			})
+			if connErr == nil {
+				jsonbytes, _ := json.Marshal(formatInfo.Content)
+				rpcResp, connErr = client.UpdateConfig(ctx, &proto.UpdateConfigReq{
+					Name: req.SheetName,
+					Head: &proto.TableHead{
+						Fields: formatInfo.Fields,
+						Types:  formatInfo.Types,
+						Descs:  formatInfo.Descs,
+					},
+					Content: string(jsonbytes),
+				})
+			}
+			if connErr != nil || len(rpcResp.ErrMsg) > 0 {
+				log.Errorw(ctx, "grpc update config error, connErr: ", connErr, " rpcResp: ", rpcResp)
+				err = ecode.Int(int(def.ErrGroupExportDatabusFailed))
+				return
+			}
 		}
 	}
+	// add record
+	err = s.dao.AddExportRecord(ctx, &model.ExportRecord{
+		UserName:  userInfo.UserName,
+		GridKey:   req.GridKey,
+		SheetName: req.SheetName,
+		Time:      time.Now().Unix(),
+		Remark:    req.Remark,
+		Sheet:     sheet,
+	})
 	return
 }
 
@@ -371,7 +466,121 @@ func (s *Service) GetConfigFromDB(ctx context.Context, req *pb.GetConfigFromDBRe
 			jsonbytes, _ := json.Marshal(res)
 			resp.Jsonstr = string(jsonbytes)
 			return
+		case def.DsnTypeRpc:
+			var client proto.DatabusClient
+			var rpcResp *proto.GetConfigResp
+			var connErr error
+			client, connErr = e2c.NewRpcClient(e2c.Conf{
+				ServerAddr: groupInfo.GRpcDsn,
+				AppKey:     groupInfo.GRpcAppKey,
+				AppSecret:  groupInfo.GRpcAppSecret,
+			})
+			if connErr == nil {
+				rpcResp, connErr = client.GetConfig(ctx, &proto.GetConfigReq{
+					Name: req.SheetName,
+				})
+			}
+			if connErr != nil {
+				log.Errorw(ctx, "grpc get config error, connErr: ", connErr, rpcResp)
+				err = ecode.Int(int(def.ErrGroupGetConfigFailed))
+				return
+			}
+			resp.Jsonstr = rpcResp.Content
 		}
+	}
+	return
+}
+
+func (s *Service) GenerateAppKeySecret(ctx context.Context, req *pb.GenerateAppKeySecretReq) (resp *pb.GenerateAppKeySecretResp, err error) {
+	resp = &pb.GenerateAppKeySecretResp{
+		AppKey:    helper.GenerateRandomStr(16),
+		AppSecret: helper.GenerateRandomStr(32),
+	}
+	return
+}
+
+// SyncToProd 测试环境sheet同步到正式环境
+func (s *Service) SyncToProd(ctx context.Context, req *pb.SyncToProdReq) (resp *pb.SyncToProdResp, err error) {
+	sheet, err := s.dao.LoadSheetByName(ctx, req.GridKey, req.SheetName)
+	if err != nil {
+		return
+	}
+	// 同步到正式环境
+	prodExcelInfo, err := s.getProdExcelInfo(ctx, req.GridKey, req.Gid)
+	if err != nil {
+		return
+	}
+	err = s.dao.UpdateSheet(ctx, prodExcelInfo.Id, sheet)
+	return
+}
+
+func (s *Service) ExportRecord(ctx context.Context, req *pb.ExportRecordReq) (resp *pb.ExportRecordResp, err error) {
+	recordList, err := s.dao.GetExportRecordList(ctx, req.GridKey, req.SheetName)
+	if err != nil {
+		return
+	}
+	list := make([]*pb.ExportRecordInfo, 0)
+	for _, info := range recordList {
+		list = append(list, &pb.ExportRecordInfo{
+			Id:       info.Id,
+			UserName: info.UserName,
+			Time:     time.Unix(info.Time, 64).Format("2006-01-02 15:04:05"),
+			Remark:   info.Remark,
+		})
+	}
+	resp = &pb.ExportRecordResp{
+		List: list,
+	}
+	return
+}
+
+func (s *Service) ExportRecordContent(ctx context.Context, req *pb.ExportRecordContentReq) (resp *pb.ExportRecordContentResp, err error) {
+	recordInfo, err := s.dao.GetExportRecord(ctx, req.GridKey, req.SheetName, req.RecordId)
+	if err != nil {
+		return
+	}
+	formatInfo, err := recordInfo.Sheet.Format()
+	if err != nil {
+		return
+	}
+	bytes, _ := json.Marshal(formatInfo.Content)
+	resp = &pb.ExportRecordContentResp{
+		Jsonstr: string(bytes),
+	}
+	return
+}
+
+func (s *Service) ExportRollback(ctx context.Context, req *pb.ExportRollbackReq) (resp *pb.ExportRollbackResp, err error) {
+	sess := sessions.Default(ctx.(*bm.Context))
+	var uid string
+	uidInterface := sess.Get("uid")
+	if uidInterface != nil {
+		uid = uidInterface.(string)
+	} else {
+		err = ecode.Int(int(def.ErrNeedLogin))
+		return
+	}
+	userInfo, err := s.dao.GetUserByUid(ctx, uid)
+	if err != nil {
+		log.Errorw(ctx, "get user info error", err)
+		err = ecode.Int(int(def.ErrNeedLogin))
+		return
+	}
+
+	recordInfo, err := s.dao.GetExportRecord(ctx, req.GridKey, req.SheetName, req.RecordId)
+	if err != nil {
+		return
+	}
+	err = s.dao.UpdateSheet(ctx, req.GridKey, recordInfo.Sheet)
+	if err == nil {
+		s.dao.AddExportRecord(ctx, &model.ExportRecord{
+			GridKey:   req.GridKey,
+			SheetName: req.SheetName,
+			UserName:  userInfo.UserName,
+			Time:      time.Now().Unix(),
+			Remark:    "回滚 \"" + recordInfo.Remark + "\"",
+			Sheet:     recordInfo.Sheet,
+		})
 	}
 	return
 }
@@ -411,6 +620,11 @@ func (s *Service) copyGroupInfo(ctx context.Context, groupInfo *model.GroupInfo)
 		RedisKeyPrefix: groupInfo.RedisKeyPrefix,
 		MysqlDSN:       groupInfo.MysqlDSN,
 		MongodbDSN:     groupInfo.MongodbDSN,
+		GrpcDSN:        groupInfo.GRpcDsn,
+		GrpcAppKey:     groupInfo.GRpcAppKey,
+		GrpcAppSecret:  groupInfo.GRpcAppSecret,
+		IsDev:          groupInfo.IsDev,
+		UnionGroupId:   groupInfo.UnionGroupId,
 	}
 }
 

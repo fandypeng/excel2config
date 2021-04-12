@@ -30,6 +30,11 @@ func RegisterGroup(e *bm.Engine, auth Auth, server GroupBMServer) {
 		s.POST("test_connection", groupTestConnection)
 		s.POST("get_config_from_db", groupGetConfigFromDB)
 		s.POST("export_config_to_db", groupExportConfigToDB)
+		s.GET("gen_app_key_secret", groupGenerateAppKeySecret)
+		s.POST("sync_to_prod", groupSyncToProd)
+		s.POST("export_record", groupExportRecord)
+		s.POST("export_record_content", groupExportRecordContent)
+		s.POST("export_rollback", groupExportRollback)
 	}
 }
 
@@ -46,5 +51,6 @@ func RegisterSheet(e *bm.Engine, auth Auth, server SheetBMServer) {
 		s.POST("delete", sheetDeleteExcel)
 		s.POST("export", sheetExportExcel)
 		s.POST("sheet_list", sheetSheetList)
+		s.POST("export_prod", sheetExportProdExcel)
 	}
 }

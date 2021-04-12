@@ -29,6 +29,8 @@ func _() {
 	_ = x[ErrLoginDenied - -118]
 	_ = x[ErrDingtalkConfig - -119]
 	_ = x[ErrLdapConfig - -120]
+	_ = x[ErrGroupExportDatabusFailed - -114]
+	_ = x[ErrInvalidParam - -115]
 	_ = x[ErrCodeEnd - -1000]
 }
 
