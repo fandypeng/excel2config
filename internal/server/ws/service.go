@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"excel2config/internal/dao"
 	"excel2config/internal/model"
+	"github.com/go-kratos/kratos/pkg/log"
 	"github.com/gorilla/websocket"
-	"github.com/prometheus/common/log"
 	"golang.org/x/text/encoding/charmap"
 	"io/ioutil"
 	"net/url"
@@ -69,18 +69,18 @@ func (s *service) readAndServe() {
 		messageType, message, err := s.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Errorln("ws error: %v", err)
+				log.Errorw(context.TODO(), "err", err, "msg", "ws error")
 			}
-			log.With("err", err).Warnln("ws close")
+			log.Errorw(context.TODO(), "ws recv msg err", err)
 			s.remDeletedSheetWhenLeave()
 			break
 		}
 		reqmsg, err := s.ungzip(message)
 		if err != nil {
-			log.With("err", err).Errorln("ungzip error")
+			log.Errorw(context.TODO(), "ungzip error, err: ", err)
 			continue
 		}
-		log.Infoln("uid: ", s.uid, " recv message_type: ", messageType, ", msg: ", string(reqmsg))
+		log.Infow(context.TODO(), "uid: ", s.uid, "message_type", messageType, "msg", string(reqmsg))
 		reqmsg = bytes.TrimSpace(bytes.Replace(reqmsg, newline, space, -1))
 		s.handleRequest(context.Background(), reqmsg)
 	}
@@ -163,14 +163,14 @@ func (s *service) updateGrid(ctx context.Context, reqmsg []byte) {
 	req := new(model.UpdateV)
 	err := json.Unmarshal(reqmsg, req)
 	if err != nil {
-		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "jsonstr", string(reqmsg), "msg", "json unmarshal error")
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 	err = s.d.UpdateGridValue(ctx, s.gridKey, req)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("update grid failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "req", req, "msg", "update grid failed")
 	}
 }
 
@@ -178,18 +178,18 @@ func (s *service) updateGridMulti(ctx context.Context, reqmsg []byte) {
 	req := new(model.UpdateRV)
 	err := json.Unmarshal(reqmsg, req)
 	if err != nil {
-		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "jsonstr", string(reqmsg), "msg", "json unmarshal error")
 		return
 	}
 	if len(req.Range.Column) < 2 || len(req.Range.Row) < 2 {
-		log.With("req", req).Warnln("invalid params")
+		log.Errorw(ctx, "req", req, "msg", "invalid params")
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 	err = s.d.UpdateGridMulti(ctx, s.gridKey, req)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("update grid failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "req", req, "msg", "update grid failed")
 	}
 }
 
@@ -197,14 +197,14 @@ func (s *service) updateGridConfig(ctx context.Context, reqmsg []byte) {
 	req := new(model.UpdateCG)
 	err := json.Unmarshal(reqmsg, req)
 	if err != nil {
-		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "jsonstr", string(reqmsg), "msg", "json unmarshal error")
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 	err = s.d.UpdateGridConfig(ctx, s.gridKey, req)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("update grid failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "req", req, "msg", "update grid failed")
 	}
 }
 
@@ -212,14 +212,14 @@ func (s *service) updateGridCommon(ctx context.Context, reqmsg []byte) {
 	req := new(model.UpdateCommon)
 	err := json.Unmarshal(reqmsg, req)
 	if err != nil {
-		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "jsonstr", string(reqmsg), "msg", "json unmarshal error")
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 	err = s.d.UpdateGridCommon(ctx, s.gridKey, req)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("update grid failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "req", req, "msg", "update grid failed")
 	}
 }
 
@@ -227,14 +227,14 @@ func (s *service) updateCalcChain(ctx context.Context, reqmsg []byte) {
 	req := new(model.UpdateCalcChain)
 	err := json.Unmarshal(reqmsg, req)
 	if err != nil {
-		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "jsonstr", string(reqmsg), "msg", "json unmarshal error")
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 	err = s.d.UpdateCalcChain(ctx, s.gridKey, req)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("update calc chain failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "req", req, "msg", "update calc chain failed")
 	}
 }
 
@@ -242,14 +242,14 @@ func (s *service) updateRowColumn(ctx context.Context, reqmsg []byte) {
 	req := new(model.UpdateRowColumn)
 	err := json.Unmarshal(reqmsg, req)
 	if err != nil {
-		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "jsonstr", string(reqmsg), "msg", "json unmarshal error")
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 	err = s.d.UpdateRowColumn(ctx, s.gridKey, req)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("update calc chain failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "req", req, "msg", "update calc chain failed")
 	}
 }
 
@@ -257,14 +257,14 @@ func (s *service) updateFilter(ctx context.Context, reqmsg []byte) {
 	req := new(model.UpdateFilter)
 	err := json.Unmarshal(reqmsg, req)
 	if err != nil {
-		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "jsonstr", string(reqmsg), "msg", "json unmarshal error")
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 	err = s.d.UpdateFilter(ctx, s.gridKey, req)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("update calc chain failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "req", req, "msg", "update calc chain failed")
 	}
 }
 
@@ -272,14 +272,14 @@ func (s *service) addSheet(ctx context.Context, reqmsg []byte) {
 	req := new(model.AddSheet)
 	err := json.Unmarshal(reqmsg, req)
 	if err != nil {
-		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "jsonstr", string(reqmsg), "msg", "json unmarshal error")
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 	err = s.d.AddSheet(ctx, s.gridKey, req)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("add sheet failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "req", req, "msg", "add sheet failed")
 	}
 }
 
@@ -287,14 +287,14 @@ func (s *service) copySheet(ctx context.Context, reqmsg []byte) {
 	req := new(model.CopySheet)
 	err := json.Unmarshal(reqmsg, req)
 	if err != nil {
-		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "jsonstr", string(reqmsg), "msg", "json unmarshal error")
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 	err = s.d.CopySheet(ctx, s.gridKey, req)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("add sheet failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "req", req, "msg", "add sheet failed")
 	}
 }
 
@@ -302,14 +302,14 @@ func (s *service) deleteSheet(ctx context.Context, reqmsg []byte) {
 	req := new(model.DeleteSheet)
 	err := json.Unmarshal(reqmsg, req)
 	if err != nil {
-		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "jsonstr", string(reqmsg), "msg", "json unmarshal error")
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 	err = s.d.DeleteSheet(ctx, s.gridKey, req)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("add sheet failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "req", req, "msg", "add sheet failed")
 	}
 }
 
@@ -317,14 +317,14 @@ func (s *service) recoverSheet(ctx context.Context, reqmsg []byte) {
 	req := new(model.RecoverSheet)
 	err := json.Unmarshal(reqmsg, req)
 	if err != nil {
-		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "jsonstr", string(reqmsg), "msg", "json unmarshal error")
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 	err = s.d.RecoverSheet(ctx, s.gridKey, req)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("add sheet failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "req", req, "msg", "add sheet failed")
 	}
 }
 
@@ -332,14 +332,14 @@ func (s *service) updateSheetOrder(ctx context.Context, reqmsg []byte) {
 	req := new(model.UpdateSheetOrder)
 	err := json.Unmarshal(reqmsg, req)
 	if err != nil {
-		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "jsonstr", string(reqmsg), "msg", "json unmarshal error")
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 	err = s.d.UpdateSheetOrder(ctx, s.gridKey, req)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("add sheet failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "req", req, "msg", "add sheet failed")
 	}
 }
 
@@ -347,14 +347,14 @@ func (s *service) toggleSheet(ctx context.Context, reqmsg []byte) {
 	req := new(model.ToggleSheet)
 	err := json.Unmarshal(reqmsg, req)
 	if err != nil {
-		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "jsonstr", string(reqmsg), "msg", "json unmarshal error")
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 	err = s.d.ToggleSheet(ctx, s.gridKey, req)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("add sheet failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "req", req, "msg", "add sheet failed")
 	}
 }
 
@@ -362,14 +362,14 @@ func (s *service) hideOrShowSheet(ctx context.Context, reqmsg []byte) {
 	req := new(model.HideOrShowSheet)
 	err := json.Unmarshal(reqmsg, req)
 	if err != nil {
-		log.With("err", err).With("jsonstr", string(reqmsg)).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "jsonstr", string(reqmsg), "msg", "json unmarshal error")
 		return
 	}
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 	err = s.d.HideOrShowSheet(ctx, s.gridKey, req)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).With("req", req).Errorln("add sheet failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "req", req, "msg", "add sheet failed")
 	}
 }
 
@@ -378,6 +378,6 @@ func (s *service) remDeletedSheetWhenLeave() {
 	defer cancel()
 	err := s.d.RemDeletedSheet(ctx, s.gridKey)
 	if err != nil {
-		log.With("err", err).With("gridKey", s.gridKey).Errorln("rem deleted sheet failed")
+		log.Errorw(ctx, "err", err, "gridKey", s.gridKey, "msg", "rem deleted sheet failed")
 	}
 }

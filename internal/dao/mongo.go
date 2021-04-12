@@ -9,7 +9,7 @@ import (
 	"excel2config/internal/model"
 	"github.com/go-kratos/kratos/pkg/conf/paladin"
 	"github.com/go-kratos/kratos/pkg/ecode"
-	"github.com/prometheus/common/log"
+	"github.com/go-kratos/kratos/pkg/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -52,7 +52,7 @@ func NewMongo() (m *mongo.Client, cf func(), err error) {
 		return nil, func() {}, err
 	}
 	if err = client.Ping(context.TODO(), readpref.Primary()); err != nil {
-		log.With("err", err).Error("mongo db ping failed")
+		log.Errorw(ctx, "err", err, "msg", "mongo db ping failed")
 		return
 	}
 	cf = func() { client.Disconnect(context.Background()) }
@@ -62,7 +62,7 @@ func NewMongo() (m *mongo.Client, cf func(), err error) {
 
 func (d *dao) PingMongo(ctx context.Context) error {
 	if err := d.mongo.Ping(ctx, readpref.Primary()); err != nil {
-		log.With("err", err).Error("mongo db ping failed")
+		log.Errorw(ctx, "err", err, "msg", "mongo db ping failed")
 		return err
 	}
 	return nil
@@ -75,7 +75,7 @@ func (d *dao) LoadExcel(ctx context.Context, gridKey string) (sheets []*model.Sh
 	activeSheet := new(model.Sheet)
 	err = singleRes.Decode(activeSheet)
 	if err != nil {
-		log.With("err", err).Errorln("mongo decode error")
+		log.Errorw(ctx, "err", err, "msg", "mongo decode error")
 		return nil, err
 	}
 	opt := options.Find()
@@ -88,7 +88,7 @@ func (d *dao) LoadExcel(ctx context.Context, gridKey string) (sheets []*model.Sh
 	sheets = make([]*model.Sheet, 0)
 	err = corsor.All(ctx, &sheets)
 	if err != nil {
-		log.With("err", err).Errorln("mango decode error")
+		log.Errorw(ctx, "err", err, "msg", "mango decode error")
 		return
 	}
 	sheets = append(sheets, activeSheet)
@@ -111,7 +111,7 @@ func (d *dao) LoadExcelSheet(ctx context.Context, gridKey string, indexs []strin
 	sheetInfos := make([]*model.Sheet, 0)
 	err = corsor.All(ctx, &sheetInfos)
 	if err != nil {
-		log.With("err", err).Errorln("mango decode error")
+		log.Errorw(ctx, "err", err, "msg", "mango decode error")
 		return
 	}
 	sheets = make(map[string][]model.Cell)
@@ -135,7 +135,7 @@ func (d *dao) LoadAllSheet(ctx context.Context, gridKey string) (sheets []*model
 	sheets = make([]*model.Sheet, 0)
 	err = corsor.All(ctx, &sheets)
 	if err != nil {
-		log.With("err", err).Errorln("mango decode error")
+		log.Errorw(ctx, "err", err, "msg", "mango decode error")
 		return
 	}
 	return
@@ -152,7 +152,7 @@ func (d *dao) LoadSheetByName(ctx context.Context, gridKey, sheetName string) (s
 	err = res.Decode(sheet)
 	if err != nil {
 		if err != mongo.ErrNoDocuments {
-			log.With("err", err).Errorln("mango decode error")
+			log.Errorw(ctx, "err", err, "msg", "mango decode error")
 		}
 		return
 	}
@@ -164,18 +164,18 @@ func (d *dao) UpdateGridValue(ctx context.Context, gridKey string, req *model.Up
 	filter := bson.M{"index": req.I, "celldata": bson.M{"$elemMatch": bson.M{"r": req.R, "c": req.C}}}
 	formatV, err := d.format2Bson(req.V)
 	if err != nil {
-		log.With("err", err).With("v", req.V).Errorln("format2bson error")
+		log.Errorw(ctx, "err", err, "v", req.V, "msg", "format2bson error")
 		return
 	}
 	res, err := c.UpdateOne(ctx, filter, bson.D{{"$set", bson.D{{"celldata.$.v", formatV}}}})
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("req", req).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "req", req, "msg", "update error")
 		return
 	}
 	if res.ModifiedCount <= 0 {
 		formatCell, err := d.format2Bson(req.Cell)
 		if err != nil {
-			log.With("err", err).With("cell", req.Cell).Errorln("format2bson error")
+			log.Errorw(ctx, "err", err, "cell", req.Cell, "msg", "format2bson error")
 			return err
 		}
 		_, err = c.UpdateOne(ctx, bson.M{"index": req.I}, bson.M{"$push": bson.M{"celldata": formatCell}})
@@ -198,10 +198,10 @@ func (d *dao) UpdateGridMulti(ctx context.Context, gridKey string, req *model.Up
 				},
 				I: req.I,
 			}
-			log.With("c", c+1).With("r", r+1).With("v", req.V[index][subIndex]).Infoln("update grid")
+			log.Errorw(ctx, "c", c+1, "r", r+1, "v", req.V[index][subIndex], "msg", "update grid")
 			err = d.UpdateGridValue(ctx, gridKey, customReq)
 			if err != nil {
-				log.With("err", err).With("req", customReq).Errorln("update error")
+				log.Errorw(ctx, "err", err, "req", customReq, "msg", "update error")
 				return
 			}
 			index++
@@ -218,12 +218,12 @@ func (d *dao) UpdateGridConfig(ctx context.Context, gridKey string, req *model.U
 		"config." + req.K: req.V,
 	})
 	if err != nil {
-		log.With("err", err).With("v", req.V).Errorln("format2bson error")
+		log.Errorw(ctx, "err", err, "v", req.V, "msg", "format2bson error")
 		return
 	}
 	_, err = c.UpdateOne(ctx, filter, bson.D{{"$set", formatV}})
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("req", req).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "req", req, "msg", "update error")
 		return
 	}
 	return err
@@ -236,12 +236,12 @@ func (d *dao) UpdateGridCommon(ctx context.Context, gridKey string, req *model.U
 		req.K: req.V,
 	})
 	if err != nil {
-		log.With("err", err).With("v", req.V).Errorln("format2bson error")
+		log.Errorw(ctx, "err", err, "v", req.V, "msg", "format2bson error")
 		return
 	}
 	_, err = c.UpdateOne(ctx, filter, bson.D{{"$set", formatV}})
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("req", req).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "req", req, "msg", "update error")
 		return
 	}
 	return err
@@ -253,12 +253,12 @@ func (d *dao) UpdateCalcChain(ctx context.Context, gridKey string, req *model.Up
 	cc := new(model.CalcChain)
 	err = json.Unmarshal([]byte(req.V), cc)
 	if err != nil {
-		log.With("err", err).With("v", req.V).Errorln("json unmarshal error")
+		log.Errorw(ctx, "err", err, "v", req.V, "msg", "json unmarshal error")
 		return
 	}
 	formatV, err := d.format2Bson(cc)
 	if err != nil {
-		log.With("err", err).With("v", req.V).Errorln("format2bson error")
+		log.Errorw(ctx, "err", err, "v", req.V, "msg", "format2bson error")
 		return
 	}
 	switch req.Op {
@@ -274,7 +274,7 @@ func (d *dao) UpdateCalcChain(ctx context.Context, gridKey string, req *model.Up
 	}
 	_, err = c.UpdateOne(ctx, filter, bson.D{{"$set", formatV}})
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("req", req).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "req", req, "msg", "update error")
 		return
 	}
 	return err
@@ -329,7 +329,7 @@ func (d *dao) UpdateRowColumn(ctx context.Context, gridKey string, req *model.Up
 		}
 	}
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("req", req).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "req", req, "msg", "update error")
 		return
 	}
 	return err
@@ -346,7 +346,7 @@ func (d *dao) UpdateFilter(ctx context.Context, gridKey string, req *model.Updat
 		_, err = c.UpdateOne(ctx, filter, bson.D{{"$set", bson.M{"filter": formatFilter, "filter_select": formatFilterSelect}}})
 	}
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("req", req).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "req", req, "msg", "update error")
 		return
 	}
 	return err
@@ -357,7 +357,7 @@ func (d *dao) AddSheet(ctx context.Context, gridKey string, req *model.AddSheet)
 	formatBson, _ := d.format2Bson(req.V)
 	_, err = c.InsertOne(ctx, formatBson)
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("req", req).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "req", req, "msg", "update error")
 		return
 	}
 	return err
@@ -384,7 +384,7 @@ func (d *dao) UpdateSheet(ctx context.Context, gridKey string, sheet *model.Shee
 		_, err = c.UpdateMany(ctx, bson.M{"name": sheet.Name}, bson.M{"$set": formatBson})
 	}
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("sheet", sheet).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "sheet", sheet, "msg", "update error")
 		return
 	}
 	return err
@@ -397,7 +397,7 @@ func (d *dao) CopySheet(ctx context.Context, gridKey string, req *model.CopyShee
 	activeSheet := new(model.Sheet)
 	err = singleRes.Decode(activeSheet)
 	if err != nil {
-		log.With("err", err).Errorln("mongo decode error")
+		log.Errorw(ctx, "err", err, "msg", "mongo decode error")
 		return err
 	}
 	activeSheet.Name = req.V.Name
@@ -405,7 +405,7 @@ func (d *dao) CopySheet(ctx context.Context, gridKey string, req *model.CopyShee
 	formatBson, _ := d.format2Bson(activeSheet)
 	_, err = c.InsertOne(ctx, formatBson)
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("req", req).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "req", req, "msg", "update error")
 		return
 	}
 	return err
@@ -416,7 +416,7 @@ func (d *dao) DeleteSheet(ctx context.Context, gridKey string, req *model.Delete
 	filter := bson.M{"index": req.V.DeleteIndex}
 	_, err = c.UpdateOne(ctx, filter, bson.M{"$set": bson.M{"deleted": 1}})
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("req", req).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "req", req, "msg", "update error")
 		return
 	}
 	return err
@@ -433,7 +433,7 @@ func (d *dao) ExcelInfo(ctx context.Context, gridKey string) (excelInfo *model.E
 	excelInfo = new(model.Excel)
 	err = singleRes.Decode(excelInfo)
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).Errorln("mongo decode error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "msg", "mongo decode error")
 		return
 	}
 	return
@@ -446,7 +446,7 @@ func (d *dao) ExcelInfoByGroupId(ctx context.Context, gid, name string) (excelIn
 	excelInfo = new(model.Excel)
 	err = singleRes.Decode(excelInfo)
 	if err != nil {
-		log.With("err", err).With("gid", gid).Errorln("mongo decode error")
+		log.Errorw(ctx, "err", err, "gid", gid, "msg", "mongo decode error")
 		return
 	}
 	return
@@ -457,7 +457,7 @@ func (d *dao) RecoverSheet(ctx context.Context, gridKey string, req *model.Recov
 	filter := bson.M{"index": req.V.RecoverIndex}
 	_, err = c.UpdateOne(ctx, filter, bson.M{"$unset": bson.M{"deleted": ""}})
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("req", req).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "req", req, "msg", "update error")
 		return
 	}
 	return err
@@ -470,7 +470,7 @@ func (d *dao) UpdateSheetOrder(ctx context.Context, gridKey string, req *model.U
 		_, err = c.UpdateOne(ctx, filter, bson.M{"$set": bson.M{"order": order}})
 	}
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("req", req).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "req", req, "msg", "update error")
 		return
 	}
 	return err
@@ -485,7 +485,7 @@ func (d *dao) ToggleSheet(ctx context.Context, gridKey string, req *model.Toggle
 		_, err = c.UpdateOne(ctx, filter, bson.M{"$set": bson.M{"status": 1}})
 	}
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("req", req).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "req", req, "msg", "update error")
 		return
 	}
 	return err
@@ -511,7 +511,7 @@ func (d *dao) HideOrShowSheet(ctx context.Context, gridKey string, req *model.Hi
 	}
 
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("req", req).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "req", req, "msg", "update error")
 		return
 	}
 	return err
@@ -522,7 +522,7 @@ func (d *dao) RemDeletedSheet(ctx context.Context, gridKey string) (err error) {
 	filter := bson.M{"deleted": 1}
 	_, err = c.DeleteMany(ctx, filter)
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).Errorln("delete error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "msg", "delete error")
 		return
 	}
 	return err
@@ -542,7 +542,7 @@ func (d *dao) CreateExcel(ctx context.Context, uid, gridKey, remark, groupId str
 	formatBson, _ := d.format2Bson(excel)
 	res, err := lc.InsertOne(ctx, formatBson)
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "msg", "update error")
 		return
 	}
 	excelId := res.InsertedID.(primitive.ObjectID).Hex()
@@ -564,7 +564,7 @@ func (d *dao) CreateExcel(ctx context.Context, uid, gridKey, remark, groupId str
 	formatBson, _ = d.format2Bson(sheet)
 	_, err = c.InsertOne(ctx, formatBson)
 	if err != nil {
-		log.With("err", err).With("gridKey", gridKey).With("sheet", sheet).Errorln("update error")
+		log.Errorw(ctx, "err", err, "gridKey", gridKey, "sheet", sheet, "msg", "update error")
 		return
 	}
 	eid = res.InsertedID.(primitive.ObjectID).Hex()
@@ -619,13 +619,13 @@ func (d *dao) ExcelList(ctx context.Context, lastTime int64, limit int64, groupI
 	}
 	cur, err := c.Find(ctx, filter, opt)
 	if err != nil {
-		log.With("err", err).With("lastTime", lastTime).Errorln("get excel list error")
+		log.Errorw(ctx, "err", err, "lastTime", lastTime, "msg", "get excel list error")
 		return
 	}
 	list = make([]*pb.SimpleExcel, 0)
 	err = cur.All(ctx, &list)
 	if err != nil {
-		log.With("err", err).With("lastTime", lastTime).Errorln("decode excel list error")
+		log.Errorw(ctx, "err", err, "lastTime", lastTime, "msg", "decode excel list error")
 		return
 	}
 	return

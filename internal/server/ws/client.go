@@ -1,8 +1,9 @@
 package ws
 
 import (
+	"context"
+	"github.com/go-kratos/kratos/pkg/log"
 	"github.com/gorilla/websocket"
-	"github.com/prometheus/common/log"
 	"sync"
 	"time"
 )
@@ -66,23 +67,23 @@ func (c *Client) waitAndWrite() {
 		select {
 		case message, ok := <-c.msgs:
 			if !ok {
-				log.Warnln("ws conn msg channel closed")
+				log.Warn("ws conn msg channel closed")
 			}
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			err := c.Conn.WriteMessage(websocket.TextMessage, message)
 			if err != nil {
-				log.With("message", string(message)).Errorf("ws conn write msg error: %v", err)
+				log.Errorw(context.TODO(), "message", string(message), "err", err, "msg", "ws conn write msg error")
 				return
 			}
 		case <-ticker.C:
-			log.With("uid", c.uid).Debugln("ticker triggered")
+			log.Infow(context.TODO(), "uid", c.uid, "msg", "ticker triggered")
 			if c.isClosed {
 				break
 			}
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			err := c.Conn.WriteMessage(websocket.PingMessage, []byte{})
 			if err != nil {
-				log.Errorf("ws conn write msg error: %v", err)
+				log.Errorw(context.TODO(), "err", err, "msg", "ws conn write msg error")
 				return
 			}
 		}

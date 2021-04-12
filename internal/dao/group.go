@@ -3,7 +3,7 @@ package dao
 import (
 	"context"
 	"excel2config/internal/model"
-	"github.com/prometheus/common/log"
+	"github.com/go-kratos/kratos/pkg/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -25,7 +25,7 @@ func (d *dao) GroupList(ctx context.Context, uid, gid string) (groupList []*mode
 	groupList = make([]*model.GroupInfo, 0)
 	err = cursor.All(ctx, &groupList)
 	if err != nil {
-		log.With("err", err).Errorln("mango decode error")
+		log.Errorw(ctx, "err", err, "msg", "mango decode error")
 		return
 	}
 	return
@@ -35,12 +35,12 @@ func (d *dao) GroupAdd(ctx context.Context, groupInfo *model.GroupInfo) (groupId
 	c := d.mongo.Database(dbname).Collection(tableGroupList)
 	format, err := d.format2Bson(groupInfo)
 	if err != nil {
-		log.With("err", err).With("groupInfo", groupInfo).Errorln("format group error")
+		log.Errorw(ctx, "err", err, "groupInfo", groupInfo, "msg", "format group error")
 		return
 	}
 	res, err := c.InsertOne(ctx, format)
 	if err != nil {
-		log.With("err", err).With("groupInfo", groupInfo).Errorln("insert group error")
+		log.Errorw(ctx, "err", err, "groupInfo", groupInfo, "msg", "insert group error")
 		return
 	}
 	groupId = res.InsertedID.(primitive.ObjectID).Hex()
@@ -53,7 +53,7 @@ func (d *dao) GroupUpdate(ctx context.Context, groupInfo *model.GroupInfo) (err 
 	groupInfo.Gid = ""
 	format, err := d.format2Bson(groupInfo)
 	if err != nil {
-		log.With("err", err).With("groupInfo", groupInfo).Errorln("format group error")
+		log.Errorw(ctx, "err", err, "groupInfo", groupInfo, "msg", "format group error")
 		return
 	}
 	groupId, err := primitive.ObjectIDFromHex(gid)
@@ -62,7 +62,7 @@ func (d *dao) GroupUpdate(ctx context.Context, groupInfo *model.GroupInfo) (err 
 	}
 	_, err = c.UpdateOne(ctx, bson.M{"_id": groupId}, bson.M{"$set": format})
 	if err != nil {
-		log.With("err", err).With("groupInfo", groupInfo).Errorln("update group error")
+		log.Errorw(ctx, "err", err, "groupInfo", groupInfo, "msg", "update group error")
 		return
 	}
 	return
@@ -78,7 +78,7 @@ func (d *dao) GroupInfo(ctx context.Context, groupId string) (groupInfo *model.G
 	res := c.FindOne(ctx, bson.M{"_id": gid})
 	err = res.Decode(groupInfo)
 	if err != nil {
-		log.With("err", err).With("groupId", groupId).Errorln("get group error")
+		log.Errorw(ctx, "err", err, "groupId", groupId, "msg", "get group error")
 		return
 	}
 	return
@@ -114,7 +114,7 @@ func (d *dao) GetExportRecordList(ctx context.Context, gridKey, sheetName string
 	list = make([]model.ExportRecord, 0)
 	err = cursor.All(ctx, &list)
 	if err != nil {
-		log.With("err", err).Errorln("mango decode error")
+		log.Errorw(ctx, "err", err, "msg", "mango decode error")
 		return
 	}
 	return
@@ -124,7 +124,7 @@ func (d *dao) GetExportRecord(ctx context.Context, gridKey, sheetName, recordId 
 	c := d.mongo.Database(dbname).Collection(tableExportRecordList)
 	rid, err := primitive.ObjectIDFromHex(recordId)
 	if err != nil {
-		log.With("err", err).Errorln("mango decode error")
+		log.Errorw(ctx, "err", err, "msg", "mango decode error")
 		return
 	}
 	filter := bson.M{"gridKey": gridKey, "sheetName": sheetName, "_id": rid}
@@ -132,7 +132,7 @@ func (d *dao) GetExportRecord(ctx context.Context, gridKey, sheetName, recordId 
 	record = &model.ExportRecord{}
 	err = res.Decode(&record)
 	if err != nil {
-		log.With("err", err).Errorln("mango decode error")
+		log.Errorw(ctx, "err", err, "msg", "mango decode error")
 		return
 	}
 	return

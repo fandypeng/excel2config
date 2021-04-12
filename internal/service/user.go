@@ -18,7 +18,7 @@ import (
 	"go.mongodb.org/mongo-driver/x/mongo/driver/uuid"
 
 	//ldap "github.com/go-ldap/ldap/v3"
-	"github.com/prometheus/common/log"
+	"github.com/go-kratos/kratos/pkg/log"
 )
 
 func (s *Service) Login(ctx context.Context, req *pb.LoginReq) (resp *pb.LoginResp, err error) {
@@ -70,7 +70,7 @@ func (s *Service) Login(ctx context.Context, req *pb.LoginReq) (resp *pb.LoginRe
 	// 保存token
 	err = s.dao.SaveToken(ctx, userInfo.Uid, resp.Token)
 	if err != nil {
-		log.With("err", err).With("userInfo", userInfo).With("token", resp.Token).Errorln("save token error")
+		log.Errorw(ctx, "err", err, "userInfo", userInfo, "token", resp.Token, "msg", "save token error")
 		return
 	}
 	sess := sessions.Default(ctx.(*bm.Context))
@@ -168,19 +168,19 @@ func (s *Service) dingtalkLogin(ctx context.Context, req *pb.LoginReq) (userInfo
 	corp := dingtalk.New(cfg.Dingtalk.corpHost, cfg.Dingtalk.corpId, cfg.Dingtalk.corpSecret)
 	token, err := corp.GetAccessToken()
 	if err != nil {
-		log.With("err", err).Errorln("get token failed")
+		log.Errorw(ctx, "err", err, "msg", "get token failed")
 		err = ecode.Int(int(def.ErrLoginFailed))
 		return
 	}
 	dingUserInfo, err := corp.GetUserInfo(token, req.Code)
 	if err != nil || dingUserInfo.ErrCode != 0 {
-		log.With("err", err).With("userInfo", userInfo).Errorln("login failed")
+		log.Errorw(ctx, "err", err, "userInfo", userInfo, "msg", "login failed")
 		err = ecode.Int(int(def.ErrLoginFailed))
 		return
 	}
 	userDetail, err := corp.GetUserDetail(token, dingUserInfo.UserId)
 	if err != nil || userDetail.ErrCode != 0 {
-		log.With("err", err).With("userInfo", userInfo).Errorln("login failed")
+		log.Errorw(ctx, "err", err, "userInfo", userInfo, "msg", "login failed")
 		err = ecode.Int(int(def.ErrLoginFailed))
 		return
 	}
@@ -188,7 +188,7 @@ func (s *Service) dingtalkLogin(ctx context.Context, req *pb.LoginReq) (userInfo
 	if len(cfg.Dingtalk.chatId) > 0 {
 		uidList, ierr := corp.GetAuthUsers(token, cfg.Dingtalk.chatId)
 		if ierr != nil || !helper.Contains(uidList, userDetail.UserId) {
-			log.With("err", ierr).Errorln("get chat group users failed")
+			log.Errorw(ctx, "err", ierr, "msg", "get chat group users failed")
 			err = ecode.Int(int(def.ErrLoginDenied))
 			return
 		}
@@ -217,7 +217,7 @@ func (s *Service) Register(ctx context.Context, req *pb.RegisterReq) (resp *pb.R
 	}
 	userInfo, err := s.dao.AddUser(ctx, req.Email, req.Pwd, req.Name, int(pb.LoginType_Common))
 	if err != nil {
-		log.With("err", err).With("userInfo", userInfo).Errorln("add user error")
+		log.Errorw(ctx, "err", err, "userInfo", userInfo, "msg", "add user error")
 		return
 	}
 	resp = &pb.RegisterResp{
@@ -227,7 +227,7 @@ func (s *Service) Register(ctx context.Context, req *pb.RegisterReq) (resp *pb.R
 	// 保存token
 	err = s.dao.SaveToken(ctx, userInfo.Uid, resp.Token)
 	if err != nil {
-		log.With("err", err).With("userInfo", userInfo).With("token", resp.Token).Errorln("save token error")
+		log.Errorw(ctx, "err", err, "userInfo", userInfo, "token", resp.Token, "msg", "save token error")
 		return
 	}
 	sess := sessions.Default(ctx.(*bm.Context))
@@ -280,7 +280,7 @@ func (s *Service) Search(ctx context.Context, req *pb.UserSearchReq) (resp *pb.U
 	}
 	userInfos, err := s.dao.GetUserInfosByKeyword(ctx, req.Name)
 	if err != nil {
-		log.With("err", err).With("name", req.Name).Errorln("get user infos error")
+		log.Errorw(ctx, "err", err, "name", req.Name, "msg", "get user infos error")
 		return
 	}
 	for _, userInfo := range userInfos {

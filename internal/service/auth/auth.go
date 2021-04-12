@@ -7,8 +7,8 @@ import (
 	"excel2config/internal/server/sessions"
 	"fmt"
 	"github.com/go-kratos/kratos/pkg/ecode"
+	"github.com/go-kratos/kratos/pkg/log"
 	bm "github.com/go-kratos/kratos/pkg/net/http/blademaster"
-	"github.com/prometheus/common/log"
 	"net/http"
 	"strings"
 )
@@ -42,7 +42,7 @@ func (a *Service) NeedLogin() bm.HandlerFunc {
 			c.Abort()
 			return
 		}
-		log.With("token", token).With("serverToken", serverToken).Debug("token compare")
+		log.Warnw(c, "token", token, "serverToken", serverToken, "compare token")
 		if token != serverToken {
 			c.JSON(nil, ecode.Int(int(def.ErrNeedLogin)))
 			c.Abort()
@@ -71,7 +71,7 @@ func (a *Service) CORS(allowOriginHosts []string) bm.HandlerFunc {
 				}
 			}
 			if !allow {
-				log.Warnln("access block by cors, host: ", strings.ToLower(origin), " allowOriginHosts: ", strings.Join(allowOriginHosts, ","))
+				log.Warnw(c, "host", strings.ToLower(origin), " allowOriginHosts", strings.Join(allowOriginHosts, ","), "msg", "host not allowed")
 				c.AbortWithStatus(http.StatusForbidden)
 				return
 			}
