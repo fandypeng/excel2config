@@ -31,7 +31,6 @@ func (a *Service) NeedLogin() bm.HandlerFunc {
 		if tokenInterface := sess.Get("token"); tokenInterface != nil {
 			token = tokenInterface.(string)
 		}
-		//return //TODO: check login status
 		if uid == "" || token == "" {
 			q := c.Request.URL.Query()
 			uid = q.Get("uid")
@@ -72,6 +71,7 @@ func (a *Service) CORS(allowOriginHosts []string) bm.HandlerFunc {
 				}
 			}
 			if !allow {
+				log.Warnln("access block by cors, host: ", strings.ToLower(origin), " allowOriginHosts: ", strings.Join(allowOriginHosts, ","))
 				c.AbortWithStatus(http.StatusForbidden)
 				return
 			}
