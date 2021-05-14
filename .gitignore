@@ -1,3 +1,4 @@
 .idea*
 logs*
 excel2config
+node_modules/
