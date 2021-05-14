@@ -1,9 +1,12 @@
 package model
 
 import (
+	"context"
 	"excel2config/internal/def"
 	"github.com/go-kratos/kratos/pkg/ecode"
+	"github.com/go-kratos/kratos/pkg/log"
 	"sort"
+	"strings"
 )
 
 // Kratos hello kratos.
@@ -84,40 +87,52 @@ func (s *Sheet) Format() (formatSheet *FormatSheet, err error) {
 	var types []string
 	var descs []string
 	sort.SliceStable(s.Celldata, func(i, j int) bool {
-		return s.Celldata[i].C < s.Celldata[j].C || (s.Celldata[i].C < s.Celldata[j].C && s.Celldata[i].R < s.Celldata[j].R)
+		return s.Celldata[i].C < s.Celldata[j].C || (s.Celldata[i].C == s.Celldata[j].C && s.Celldata[i].R < s.Celldata[j].R)
 	})
+	var descMap = make(map[int]interface{})
 	for _, cell := range s.Celldata {
-		if cell.V.V == 0 || cell.V.V == "" || cell.V.V == nil {
+		if cell.R < 2 && IsEmptyCell(cell) {
 			continue
 		}
-		if int(cell.R) == 0 {
+		if cell.R == 0 { // field
 			if field, ok := cell.V.V.(string); ok {
+				field = strings.Trim(field, "\r\t\n ")
 				fields = append(fields, field)
 			}
 		}
-		if int(cell.R) == 1 {
+		if int(cell.R) == 1 { // type
 			if t, ok := cell.V.V.(string); ok {
+				t = strings.Trim(t, "\r\t\n")
 				if t != "string" && t != "int" {
 					err = ecode.Int(int(def.ErrTableHead))
+					log.Errorw(context.TODO(), "type", t, "cell", cell, "msg", "table type error")
 					return
 				}
 				types = append(types, t)
 			}
 		}
-		if int(cell.R) == 2 {
-			if t, ok := cell.V.V.(string); ok {
-				descs = append(descs, t)
+		if int(cell.R) == 2 { // desc
+			if desc, ok := cell.V.V.(string); ok {
+				descMap[int(cell.C)] = desc
 			}
 		}
 	}
-	if len(fields) != len(types) {
+	for i, _ := range fields {
+		if desc, ok := descMap[i]; ok {
+			descs = append(descs, desc.(string))
+		} else {
+			descs = append(descs, "")
+		}
+	}
+	fieldCount := len(fields)
+	if fieldCount != len(types) || fieldCount != len(descs) || fieldCount == 0 {
+		log.Errorw(context.TODO(), "fieldCount", fieldCount, "type_len", len(types), "desc_len", len(descs), "msg", "head len not valid")
 		err = ecode.Int(int(def.ErrTableHead))
 		return
 	}
-	fieldCount := len(fields)
 	content := make([]map[int]interface{}, 0)
 	for _, cell := range s.Celldata {
-		if cell.V.V == 0 || cell.V.V == "" || cell.V.V == nil || int(cell.C) >= fieldCount {
+		if IsEmptyCell(cell) || int(cell.C) >= fieldCount {
 			continue
 		}
 		if len(content) < int(cell.R) {
@@ -129,6 +144,7 @@ func (s *Sheet) Format() (formatSheet *FormatSheet, err error) {
 		content[int(cell.R)][int(cell.C)] = cell.V.V
 	}
 	if len(content) < 3 {
+		log.Errorw(context.TODO(), "content", content, "msg", "content len not valid")
 		err = ecode.Int(int(def.ErrTableHead))
 		return
 	}
@@ -160,4 +176,21 @@ func (s *Sheet) Format() (formatSheet *FormatSheet, err error) {
 	formatSheet.Types = types
 	formatSheet.Descs = descs
 	return
+}
+
+func IsEmptyCell(cell Cell) bool {
+	if ok, v := IsInlineCell(cell); ok {
+		cell.V.V = v
+	}
+	if cell.V.V == nil || cell.V.V == 0 || cell.V.V == "" {
+		return true
+	}
+	return false
+}
+
+func IsInlineCell(cell Cell) (bool, interface{}) {
+	if cell.V.V == nil && cell.V.Ct != nil && cell.V.Ct.T == "inlineStr" && len(cell.V.Ct.S) > 0 {
+		return true, cell.V.Ct.S[0].V
+	}
+	return false, nil
 }

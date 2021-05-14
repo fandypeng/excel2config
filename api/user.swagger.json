@@ -312,7 +312,7 @@
                     "type": "string"
                 },
                 "role": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },

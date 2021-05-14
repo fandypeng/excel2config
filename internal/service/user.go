@@ -119,7 +119,7 @@ func (s *Service) ldapLogin(ctx context.Context, req *pb.LoginReq) (userInfo *mo
 		return
 	}
 	searchRequest := ldap.NewSearchRequest(
-		"dc=wepie,dc=com",
+		cfg.Ldap.SearchBaseDn,
 		ldap.ScopeWholeSubtree, ldap.DerefAlways, 0, 0, false,
 		fmt.Sprintf("(&(%s=%s))", cfg.Ldap.SearchBy, req.Email),
 		[]string{"dn", cfg.Ldap.SearchUserName, cfg.Ldap.SearchBy},
@@ -144,7 +144,7 @@ func (s *Service) ldapLogin(ctx context.Context, req *pb.LoginReq) (userInfo *mo
 		//record a random password to avoid common login
 		u, _ := uuid.New()
 		pwd := helper.Md5Sum(string(u[:]))
-		userInfo, err = s.dao.AddUser(ctx, req.Email, pwd, searchRes.GetAttributeValue(cfg.Ldap.SearchUserName), int(pb.LoginType_Ldap))
+		userInfo, err = s.dao.AddUser(ctx, req.Email, pwd, searchRes.GetAttributeValue(cfg.Ldap.SearchUserName), int(pb.LoginType_Ldap), "")
 	}
 	return
 }
@@ -152,20 +152,20 @@ func (s *Service) ldapLogin(ctx context.Context, req *pb.LoginReq) (userInfo *mo
 func (s *Service) dingtalkLogin(ctx context.Context, req *pb.LoginReq) (userInfo *model.UserInfo, err error) {
 	var cfg struct {
 		Dingtalk struct {
-			corpHost   string
-			corpId     string
-			corpSecret string
-			chatId     string
+			CorpHost   string
+			CorpId     string
+			CorpSecret string
+			ChatId     string
 		}
 	}
 	if err = paladin.Get("application.toml").UnmarshalTOML(&cfg); err != nil {
 		return
 	}
-	if cfg.Dingtalk.corpId == "" || cfg.Dingtalk.corpSecret == "" || cfg.Dingtalk.corpHost == "" {
+	if cfg.Dingtalk.CorpId == "" || cfg.Dingtalk.CorpSecret == "" || cfg.Dingtalk.CorpHost == "" {
 		err = ecode.Int(int(def.ErrDingtalkConfig))
 		return
 	}
-	corp := dingtalk.New(cfg.Dingtalk.corpHost, cfg.Dingtalk.corpId, cfg.Dingtalk.corpSecret)
+	corp := dingtalk.New(cfg.Dingtalk.CorpHost, cfg.Dingtalk.CorpId, cfg.Dingtalk.CorpSecret)
 	token, err := corp.GetAccessToken()
 	if err != nil {
 		log.Errorw(ctx, "err", err, "msg", "get token failed")
@@ -174,7 +174,7 @@ func (s *Service) dingtalkLogin(ctx context.Context, req *pb.LoginReq) (userInfo
 	}
 	dingUserInfo, err := corp.GetUserInfo(token, req.Code)
 	if err != nil || dingUserInfo.ErrCode != 0 {
-		log.Errorw(ctx, "err", err, "userInfo", userInfo, "msg", "login failed")
+		log.Errorw(ctx, "err", err, "userInfo", userInfo, "dingUserInfo", dingUserInfo, "msg", "login failed")
 		err = ecode.Int(int(def.ErrLoginFailed))
 		return
 	}
@@ -184,24 +184,30 @@ func (s *Service) dingtalkLogin(ctx context.Context, req *pb.LoginReq) (userInfo
 		err = ecode.Int(int(def.ErrLoginFailed))
 		return
 	}
-	//check whether the user in chat group if chatId is configured
-	if len(cfg.Dingtalk.chatId) > 0 {
-		uidList, ierr := corp.GetAuthUsers(token, cfg.Dingtalk.chatId)
+	//check whether the user in chat group if ChatId is configured
+	if len(cfg.Dingtalk.ChatId) > 0 {
+		uidList, ierr := corp.GetAuthUsers(token, cfg.Dingtalk.ChatId)
 		if ierr != nil || !helper.Contains(uidList, userDetail.UserId) {
 			log.Errorw(ctx, "err", ierr, "msg", "get chat group users failed")
 			err = ecode.Int(int(def.ErrLoginDenied))
 			return
 		}
 	}
+	log.Infow(ctx, "user dingtalk login, userDetail: ", userDetail)
 	userInfo, err = s.dao.GetUser(ctx, userDetail.Email)
 	if err == mongo.ErrNoDocuments {
 		//record a random password to avoid common login
 		u, _ := uuid.New()
 		pwd := helper.Md5Sum(string(u[:]))
-		userInfo, err = s.dao.AddUser(ctx, req.Email, pwd, userDetail.Name, int(pb.LoginType_DingDing))
+		userInfo, err = s.dao.AddUser(ctx, userDetail.Email, pwd, userDetail.Name, int(pb.LoginType_DingDing), dingUserInfo.UserId)
 	}
 	if err == nil {
 		userInfo.Avatar = userDetail.Avatar
+		userInfo.UserName = userDetail.Name
+		if len(userInfo.OpenId) == 0 {
+			userInfo.OpenId = userDetail.UserId
+			s.dao.SaveUser(ctx, userInfo)
+		}
 	}
 	return
 }
@@ -215,7 +221,7 @@ func (s *Service) Register(ctx context.Context, req *pb.RegisterReq) (resp *pb.R
 		err = ecode.Int(int(def.ErrPwdNotConfirmed))
 		return
 	}
-	userInfo, err := s.dao.AddUser(ctx, req.Email, req.Pwd, req.Name, int(pb.LoginType_Common))
+	userInfo, err := s.dao.AddUser(ctx, req.Email, req.Pwd, req.Name, int(pb.LoginType_Common), "")
 	if err != nil {
 		log.Errorw(ctx, "err", err, "userInfo", userInfo, "msg", "add user error")
 		return

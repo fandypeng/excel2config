@@ -4,11 +4,6 @@ github.com/Azure/go-ntlmssp
 github.com/BurntSushi/toml
 # github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d
 github.com/StackExchange/wmi
-# github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
-github.com/alecthomas/template
-github.com/alecthomas/template/parse
-# github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4
-github.com/alecthomas/units
 # github.com/aws/aws-sdk-go v1.35.8
 ## explicit
 github.com/aws/aws-sdk-go/aws
@@ -34,7 +29,7 @@ github.com/beorn7/perks/quantile
 github.com/cespare/xxhash/v2
 # github.com/dgryski/go-farm v0.0.0-20190423205320-6a90982ecee2
 github.com/dgryski/go-farm
-# github.com/fandypeng/e2cdatabus v0.0.0-20210401100712-4f1331033c0e
+# github.com/fandypeng/e2cdatabus v1.0.2-0.20210510114020-f9c9364f4df4
 ## explicit
 github.com/fandypeng/e2cdatabus/auth
 github.com/fandypeng/e2cdatabus/proto
@@ -170,7 +165,6 @@ github.com/prometheus/client_model/go
 ## explicit
 github.com/prometheus/common/expfmt
 github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
-github.com/prometheus/common/log
 github.com/prometheus/common/model
 # github.com/prometheus/procfs v0.0.11
 github.com/prometheus/procfs
@@ -227,14 +221,12 @@ golang.org/x/crypto/md4
 golang.org/x/crypto/ocsp
 golang.org/x/crypto/pbkdf2
 # golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
-## explicit
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
-golang.org/x/net/websocket
 # golang.org/x/sync v0.0.0-20201008141435-b3e1573b7520
 ## explicit
 golang.org/x/sync/errgroup
@@ -243,8 +235,6 @@ golang.org/x/sync/semaphore
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-golang.org/x/sys/windows/registry
-golang.org/x/sys/windows/svc/eventlog
 # golang.org/x/text v0.3.4
 ## explicit
 golang.org/x/text/encoding
@@ -333,8 +323,6 @@ google.golang.org/protobuf/types/descriptorpb
 google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/timestamppb
-# gopkg.in/alecthomas/kingpin.v2 v2.2.6
-gopkg.in/alecthomas/kingpin.v2
 # gopkg.in/go-playground/validator.v9 v9.29.1
 gopkg.in/go-playground/validator.v9
 # gopkg.in/yaml.v2 v2.4.0

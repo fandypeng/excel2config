@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	pb "excel2config/api"
@@ -109,10 +110,26 @@ func (s *Service) GroupUpdate(ctx context.Context, req *pb.UpdateGroupReq) (resp
 	if err != nil {
 		return
 	}
-	if groupInfo.Owner != uid {
+	//只有管理员才有邀请成员和修改项目信息的权限，项目所有者默认为管理员
+	var memberInfo *pb.SimpleUserInfo
+	for _, minfo := range req.GroupInfo.Members {
+		if minfo.Uid == uid {
+			memberInfo = minfo
+			break
+		}
+	}
+	if memberInfo == nil {
 		err = ecode.Int(int(def.ErrPermissionDenied))
 		return
 	}
+	if memberInfo.Role == 0 && groupInfo.Owner == uid {
+		memberInfo.Role = def.RoleTypeAdmin
+	}
+	if memberInfo.Role != def.RoleTypeAdmin {
+		err = ecode.Int(int(def.ErrPermissionDenied))
+		return
+	}
+
 	members := make([]model.SimpleUserInfo, 0)
 	uids := make([]string, 0)
 	for _, minfo := range req.GroupInfo.Members {
@@ -121,7 +138,7 @@ func (s *Service) GroupUpdate(ctx context.Context, req *pb.UpdateGroupReq) (resp
 		}
 		members = append(members, model.SimpleUserInfo{
 			Uid:  minfo.Uid,
-			Role: minfo.Role,
+			Role: int(minfo.Role),
 		})
 		uids = append(uids, minfo.Uid)
 	}
@@ -144,6 +161,7 @@ func (s *Service) GroupUpdate(ctx context.Context, req *pb.UpdateGroupReq) (resp
 		GRpcAppSecret:  req.GroupInfo.GrpcAppSecret,
 		IsDev:          req.GroupInfo.IsDev,
 		UnionGroupId:   req.GroupInfo.UnionGroupId,
+		AccessToken:    req.GroupInfo.AccessToken,
 	}
 	err = s.dao.GroupUpdate(ctx, groupInfo)
 	if err != nil {
@@ -208,7 +226,7 @@ func (s *Service) TestConnection(ctx context.Context, req *pb.TestConnectionReq)
 			greetResp, connErr = client.SayHello(ctx, &proto.SayHelloReq{Greet: "excel2config greet"})
 		}
 		if connErr != nil || len(greetResp.Response) == 0 {
-			log.Errorw(ctx, "mongodb ping error, connErr: ", connErr)
+			log.Errorw(ctx, "grpc greet error, connErr: ", connErr, "resp", greetResp)
 			resp.Connected = 0
 			return
 		}
@@ -289,20 +307,10 @@ func (s *Service) ExportConfigToDB(ctx context.Context, req *pb.ExportConfigToDB
 				return
 			}
 			// build a temp table to test the format
-			testTableName := req.SheetName + "_" + strconv.Itoa(int(time.Now().Unix()))
-			err = s.exportTableToMysql(ctx, db, formatInfo, testTableName)
+			tempTableName := req.SheetName + "_" + strconv.Itoa(int(time.Now().Unix()))
+			err = s.exportTableToMysql(ctx, db, formatInfo, tempTableName)
 			if err == nil {
-				err = s.exportTableToMysql(ctx, db, formatInfo, req.SheetName)
-			}
-			if err == nil {
-				tx, txerr := db.Begin(ctx)
-				if txerr != nil {
-					log.Errorw(ctx, "mysql begin error, err: ", txerr)
-					err = txerr
-					return
-				}
-				s.dropTable(tx, testTableName)
-				err = tx.Commit()
+				err = s.renameTable(ctx, db, req.SheetName, tempTableName)
 			}
 			if err != nil {
 				log.Errorw(ctx, "mysql conn error", err)
@@ -360,12 +368,17 @@ func (s *Service) ExportConfigToDB(ctx context.Context, req *pb.ExportConfigToDB
 						Types:  formatInfo.Types,
 						Descs:  formatInfo.Descs,
 					},
-					Content: string(jsonbytes),
+					Content:    string(jsonbytes),
+					DingtalkID: userInfo.OpenId,
 				})
 			}
 			if connErr != nil || len(rpcResp.ErrMsg) > 0 {
 				log.Errorw(ctx, "grpc update config error, connErr: ", connErr, " rpcResp: ", rpcResp)
-				err = ecode.Int(int(def.ErrGroupExportDatabusFailed))
+				if connErr != nil {
+					err = ecode.Error(-500, connErr.Error())
+				} else {
+					err = ecode.Int(int(def.ErrGroupExportDatabusFailed))
+				}
 				return
 			}
 		}
@@ -419,7 +432,6 @@ func (s *Service) GetConfigFromDB(ctx context.Context, req *pb.GetConfigFromDBRe
 				return
 			}
 			resp.Jsonstr = jsonstr
-			return
 		case def.DsnTypeMysql:
 			mysqlConf := helper.ParseMysqlDsn(groupInfo.MysqlDSN)
 			db := sql.NewMySQL(mysqlConf)
@@ -465,7 +477,6 @@ func (s *Service) GetConfigFromDB(ctx context.Context, req *pb.GetConfigFromDBRe
 			}
 			jsonbytes, _ := json.Marshal(res)
 			resp.Jsonstr = string(jsonbytes)
-			return
 		case def.DsnTypeRpc:
 			var client proto.DatabusClient
 			var rpcResp *proto.GetConfigResp
@@ -487,6 +498,13 @@ func (s *Service) GetConfigFromDB(ctx context.Context, req *pb.GetConfigFromDBRe
 			}
 			resp.Jsonstr = rpcResp.Content
 		}
+		if len(resp.Jsonstr) > 0 {
+			resp.Jsonstr = s.compressJson(resp.Jsonstr)
+			var str bytes.Buffer
+			_ = json.Indent(&str, []byte(resp.Jsonstr), "", "    ")
+			resp.Jsonstr = str.String()
+			return
+		}
 	}
 	return
 }
@@ -501,6 +519,15 @@ func (s *Service) GenerateAppKeySecret(ctx context.Context, req *pb.GenerateAppK
 
 // SyncToProd 测试环境sheet同步到正式环境
 func (s *Service) SyncToProd(ctx context.Context, req *pb.SyncToProdReq) (resp *pb.SyncToProdResp, err error) {
+	sess := sessions.Default(ctx.(*bm.Context))
+	var uid string
+	uidInterface := sess.Get("uid")
+	if uidInterface != nil {
+		uid = uidInterface.(string)
+	} else {
+		err = ecode.Int(int(def.ErrNeedLogin))
+		return
+	}
 	sheet, err := s.dao.LoadSheetByName(ctx, req.GridKey, req.SheetName)
 	if err != nil {
 		return
@@ -508,6 +535,21 @@ func (s *Service) SyncToProd(ctx context.Context, req *pb.SyncToProdReq) (resp *
 	// 同步到正式环境
 	prodExcelInfo, err := s.getProdExcelInfo(ctx, req.GridKey, req.Gid)
 	if err != nil {
+		return
+	}
+	prodGroupInfo, err := s.dao.GroupInfo(ctx, prodExcelInfo.GroupId)
+	if err != nil {
+		return
+	}
+	isMember := false
+	for _, mem := range prodGroupInfo.Members {
+		if mem.Uid == uid {
+			isMember = true
+			break
+		}
+	}
+	if !isMember {
+		err = ecode.Int(int(def.ErrPermissionDenied))
 		return
 	}
 	err = s.dao.UpdateSheet(ctx, prodExcelInfo.Id, sheet)
@@ -543,9 +585,13 @@ func (s *Service) ExportRecordContent(ctx context.Context, req *pb.ExportRecordC
 	if err != nil {
 		return
 	}
-	bytes, _ := json.Marshal(formatInfo.Content)
-	resp = &pb.ExportRecordContentResp{
-		Jsonstr: string(bytes),
+	resp = &pb.ExportRecordContentResp{}
+	b, err := json.Marshal(formatInfo.Content)
+	if err == nil {
+		jsonstr := s.compressJson(string(b))
+		var str bytes.Buffer
+		_ = json.Indent(&str, []byte(jsonstr), "", "    ")
+		resp.Jsonstr = str.String()
 	}
 	return
 }
@@ -604,6 +650,7 @@ func (s *Service) copyGroupInfo(ctx context.Context, groupInfo *model.GroupInfo)
 			Uid:      minfo.Uid,
 			UserName: userInfo.UserName,
 			Avatar:   userInfo.Avatar,
+			Role:     int32(minfo.Role),
 		})
 	}
 	return &pb.GroupInfo{
@@ -625,32 +672,42 @@ func (s *Service) copyGroupInfo(ctx context.Context, groupInfo *model.GroupInfo)
 		GrpcAppSecret:  groupInfo.GRpcAppSecret,
 		IsDev:          groupInfo.IsDev,
 		UnionGroupId:   groupInfo.UnionGroupId,
+		AccessToken:    groupInfo.AccessToken,
 	}
 }
 
 func (s *Service) exportTableToMysql(ctx context.Context, db *sql.DB, formatInfo *model.FormatSheet, tableName string) (err error) {
-	tx, err := db.Begin(ctx)
-	if err != nil {
-		return
-	}
-	err = s.dropTable(tx, tableName)
+	err = s.dropTable(ctx, db, tableName)
 	if err == nil {
-		err = s.createTable(tx, formatInfo, tableName)
+		err = s.createTable(ctx, db, formatInfo, tableName)
 	}
 	if err == nil {
-		err = s.insertToTable(tx, formatInfo, tableName)
-	}
-	if err == nil {
-		err = tx.Commit()
+		err = s.insertToTable(ctx, db, formatInfo, tableName)
 	}
 	if err != nil {
-		err = tx.Rollback()
+		log.Errorw(ctx, "mysql exec error", err)
 		return
 	}
 	return
 }
 
-func (s *Service) createTable(tx *sql.Tx, formatInfo *model.FormatSheet, tableName string) (err error) {
+func (s *Service) renameTable(ctx context.Context, db *sql.DB, tableName, tmpTableName string) (err error) {
+	bakTableName := tableName + "_bak"
+	row := db.QueryRow(ctx, "show tables like '"+tableName+"'")
+	var scanTableName string
+	if scanErr := row.Scan(&scanTableName); scanErr == nil && len(scanTableName) > 0 {
+		_, err = db.Exec(ctx, "alter table "+tableName+" rename to "+bakTableName)
+	}
+	if err == nil {
+		_, err = db.Exec(ctx, "alter table "+tmpTableName+" rename to "+tableName)
+	}
+	if err == nil {
+		err = s.dropTable(ctx, db, bakTableName)
+	}
+	return
+}
+
+func (s *Service) createTable(ctx context.Context, db *sql.DB, formatInfo *model.FormatSheet, tableName string) (err error) {
 	createSql := "CREATE TABLE `" + tableName + "` ("
 	for index, row := range formatInfo.Fields {
 		fieldTy := "bigint(20)"
@@ -659,12 +716,13 @@ func (s *Service) createTable(tx *sql.Tx, formatInfo *model.FormatSheet, tableNa
 		}
 		createSql += "`" + row + "` " + fieldTy + " NOT NULL COMMENT '" + formatInfo.Descs[index] + "',"
 	}
-	createSql += "PRIMARY KEY (`sid`) ) DEFAULT CHARSET=utf8mb4"
-	_, err = tx.Exec(createSql)
+	firstField := formatInfo.Fields[0]
+	createSql += "PRIMARY KEY (`" + firstField + "`) ) DEFAULT CHARSET=utf8mb4"
+	_, err = db.Exec(ctx, createSql)
 	return
 }
 
-func (s *Service) insertToTable(tx *sql.Tx, formatInfo *model.FormatSheet, tableName string) (err error) {
+func (s *Service) insertToTable(ctx context.Context, db *sql.DB, formatInfo *model.FormatSheet, tableName string) (err error) {
 	insertSql := "INSERT INTO `" + tableName + "` ("
 	for index, field := range formatInfo.Fields {
 		insertSql += "`" + field + "`"
@@ -698,13 +756,13 @@ func (s *Service) insertToTable(tx *sql.Tx, formatInfo *model.FormatSheet, table
 			insertSql += ",("
 		}
 	}
-	_, err = tx.Exec(insertSql)
+	_, err = db.Exec(ctx, insertSql)
 	return
 }
 
-func (s *Service) dropTable(tx *sql.Tx, tableName string) (err error) {
+func (s *Service) dropTable(ctx context.Context, db *sql.DB, tableName string) (err error) {
 	dropSql := "drop table if exists " + tableName
-	_, err = tx.Exec(dropSql)
+	_, err = db.Exec(ctx, dropSql)
 	if err != nil {
 		return err
 	}

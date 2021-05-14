@@ -1,0 +1,20 @@
+{
+  "name": "normalize-wheel",
+  "version": "1.0.1",
+  "description": "Mouse wheel normalization across multiple multiple browsers.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mouse wheel",
+    "normalization",
+    "browser"
+  ],
+  "author": "Bas Stottelaar",
+  "license": "BSD-3-Clause"
+
+,"_resolved": "https://registry.npmjs.org/normalize-wheel/-/normalize-wheel-1.0.1.tgz"
+,"_integrity": "sha1-rsiGr/2wRQcNhWRH32Ls+GFG7EU="
+,"_from": "normalize-wheel@1.0.1"
+}

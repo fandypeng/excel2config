@@ -56,6 +56,11 @@ service Sheet {
       post: "excel/export_prod"
     };
   };
+  rpc ExportAllSheets(ExportAllSheetsReq) returns (ExportAllSheetsResp) {
+    option (google.api.http) = {
+      post: "excel/export_all_sheets"
+    };
+  };
 }
 
 message ExcelListReq {
@@ -152,4 +157,18 @@ message SheetListReq {
 
 message SheetListResp {
   repeated string sheetName = 1;
+}
+
+message ExportAllSheetsReq {
+  string gridKey = 1[(gogoproto.moretags) = 'form:"gridKey" validate:"required"'];
+  string accessToken = 2[(gogoproto.moretags) = 'form:"accessToken" validate:"required"'];
+}
+
+message simpleSheet {
+  string name = 1;
+  string content = 2;
+}
+
+message ExportAllSheetsResp {
+  repeated simpleSheet sheetList = 1;
 }

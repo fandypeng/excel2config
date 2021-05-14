@@ -14,9 +14,9 @@ type ClientMgr struct {
 func (m *ClientMgr) AddClient(uid, name string, client *Client) {
 	m.Lock()
 	defer m.Unlock()
-	_, ok := m.Clients[uid]
+	oldClient, ok := m.Clients[uid]
 	if ok {
-		//m.Clients[uid].Close()
+		oldClient.Close()
 	}
 	client.uid = uid
 	client.name = name

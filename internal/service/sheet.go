@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	pb "excel2config/api"
@@ -129,12 +130,15 @@ func (s *Service) ExportExcel(ctx context.Context, req *pb.ExportExcelReq) (resp
 	resp = &pb.ExportExcelResp{}
 	res, err := sheet.Format()
 	if err != nil {
-		err = ecode.Int(int(def.ErrTableFormat))
+		log.Errorw(ctx, "err", err, "req", req, "msg", "sheet format failed")
 		return
 	}
 	b, err := json.Marshal(res.Content)
 	if err == nil {
-		resp.Jsonstr = string(b)
+		jsonstr := s.compressJson(string(b))
+		var str bytes.Buffer
+		_ = json.Indent(&str, []byte(jsonstr), "", "    ")
+		resp.Jsonstr = str.String()
 	}
 	return
 }
@@ -158,12 +162,15 @@ func (s *Service) ExportProdExcel(ctx context.Context, req *pb.ExportProdExcelRe
 	resp = &pb.ExportProdExcelResp{}
 	res, err := sheet.Format()
 	if err != nil {
-		err = ecode.Int(int(def.ErrTableFormat))
+		log.Errorw(ctx, "err", err, "req", req, "msg", "sheet format failed")
 		return
 	}
 	b, err := json.Marshal(res.Content)
 	if err == nil {
-		resp.Jsonstr = string(b)
+		jsonstr := s.compressJson(string(b))
+		var str bytes.Buffer
+		_ = json.Indent(&str, []byte(jsonstr), "", "    ")
+		resp.Jsonstr = str.String()
 	}
 	return
 }
@@ -184,6 +191,42 @@ func (s *Service) SheetList(ctx context.Context, req *pb.SheetListReq) (resp *pb
 	return
 }
 
+func (s *Service) ExportAllSheets(ctx context.Context, req *pb.ExportAllSheetsReq) (resp *pb.ExportAllSheetsResp, err error) {
+	excelInfo, err := s.dao.ExcelInfo(ctx, req.GridKey)
+	if err != nil {
+		return
+	}
+	groupInfo, err := s.dao.GroupInfo(ctx, excelInfo.GroupId)
+	if err != nil {
+		return
+	}
+	if groupInfo.AccessToken != req.AccessToken {
+		err = ecode.Int(int(def.ErrPermissionDenied))
+		return
+	}
+	sheets, err := s.dao.LoadAllSheet(ctx, req.GridKey)
+	if err != nil {
+		err = ecode.Int(int(def.ErrTableNotExist))
+		return
+	}
+	resp = &pb.ExportAllSheetsResp{}
+	sheetList := make([]*pb.SimpleSheet, 0)
+	for _, sheet := range sheets {
+		formatInfo, err := sheet.Format()
+		if err != nil {
+			log.Errorw(ctx, "format sheet error, err", err, "sheet", sheet)
+			continue
+		}
+		jsonbytes, _ := json.Marshal(formatInfo.Content)
+		sheetList = append(sheetList, &pb.SimpleSheet{
+			Name:    sheet.Name,
+			Content: string(jsonbytes),
+		})
+	}
+	resp.SheetList = sheetList
+	return
+}
+
 func (s *Service) getProdExcelInfo(ctx context.Context, gridKey, gid string) (prodExcelInfo *model.Excel, err error) {
 	excelInfo, err := s.dao.ExcelInfo(ctx, gridKey)
 	if err != nil {
@@ -198,4 +241,22 @@ func (s *Service) getProdExcelInfo(ctx context.Context, gridKey, gid string) (pr
 		return
 	}
 	return
+}
+
+func (s *Service) compressJson(jsonstr string) string {
+	list := make([]interface{}, 0)
+	err := json.Unmarshal([]byte(jsonstr), &list)
+	if err != nil {
+		return jsonstr
+	}
+	strSlice := make([]string, 0)
+	if len(list) > def.NeedCompressSheetRows {
+		for _, v := range list {
+			bs, _ := json.Marshal(v)
+			strSlice = append(strSlice, string(bs))
+		}
+		bs, _ := json.Marshal(strSlice)
+		return string(bs)
+	}
+	return jsonstr
 }

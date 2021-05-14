@@ -92,6 +92,7 @@ message GroupInfo {
   string GrpcAppSecret = 16 [(gogoproto.moretags) = 'bson:"GrpcAppSecret"'];
   bool IsDev = 17 [(gogoproto.moretags) = 'bson:"IsDev"'];
   string UnionGroupId = 18 [(gogoproto.moretags) = 'bson:"UnionGroupId"'];
+  string AccessToken = 19 [(gogoproto.moretags) = 'bson:"AccessToken"'];
 }
 
 message GroupListResp {

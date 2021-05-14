@@ -42,8 +42,8 @@ func (a *Service) NeedLogin() bm.HandlerFunc {
 			c.Abort()
 			return
 		}
-		log.Warnw(c, "token", token, "serverToken", serverToken, "compare token")
 		if token != serverToken {
+			log.Warnw(c, "token", token, "serverToken", serverToken, "msg", "token is different")
 			c.JSON(nil, ecode.Int(int(def.ErrNeedLogin)))
 			c.Abort()
 			return

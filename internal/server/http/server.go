@@ -3,6 +3,7 @@ package http
 import (
 	pb "excel2config/api"
 	"excel2config/internal/model"
+	"excel2config/internal/pkg/gzip"
 	"excel2config/internal/server/sessions"
 	"excel2config/internal/server/sessions/cookie"
 	"excel2config/internal/service"
@@ -27,6 +28,7 @@ func New(s *service.Service) (engine *bm.Engine, err error) {
 	}
 	engine = bm.DefaultServer(&cfg.ServerConfig)
 	engine.Use(s.As.CORS(cfg.CrossDomains))
+	engine.Use(gzip.Gzip(gzip.DefaultCompression))
 	initRouter(engine, s)
 	err = engine.Start()
 	return

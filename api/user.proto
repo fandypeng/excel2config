@@ -64,7 +64,7 @@ message SimpleUserInfo {
   string uid = 1 [(gogoproto.moretags) = 'bson:"_id" json:"id"'];
   string userName = 2 [(gogoproto.moretags) = 'bson:"username"'];
   string avatar = 3 [(gogoproto.moretags) = 'bson:"avatar"'];
-  string role = 4 [(gogoproto.moretags) = 'bson:"role"'];
+  int32 role = 4 [(gogoproto.moretags) = 'bson:"role"'];
 }
 
 message LoginResp {

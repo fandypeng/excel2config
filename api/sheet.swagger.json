@@ -164,6 +164,43 @@
                 ]
             }
         },
+        "excel/export_all_sheets": {
+            "post": {
+                "summary": "excel/export_all_sheets",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "integer"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "$ref": "#/definitions/.sheet.service.v1.ExportAllSheetsResp"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/.sheet.service.v1.ExportAllSheetsReq"
+                        }
+                    }
+                ],
+                "tags": [
+                    "sheet.service.v1.Sheet"
+                ]
+            }
+        },
         "excel/export_prod": {
             "post": {
                 "summary": "excel/export_prod",
@@ -434,6 +471,32 @@
                 }
             }
         },
+        ".sheet.service.v1.ExportAllSheetsReq": {
+            "type": "object",
+            "properties": {
+                "gridKey": {
+                    "type": "string"
+                },
+                "accessToken": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "gridKey",
+                "accessToken"
+            ]
+        },
+        ".sheet.service.v1.ExportAllSheetsResp": {
+            "type": "object",
+            "properties": {
+                "sheetList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/.sheet.service.v1.simpleSheet"
+                    }
+                }
+            }
+        },
         ".sheet.service.v1.ExportExcelReq": {
             "type": "object",
             "properties": {
@@ -602,6 +665,17 @@
         ".sheet.service.v1.UpdateExcelResp": {
             "type": "object",
             "properties": {}
+        },
+        ".sheet.service.v1.simpleSheet": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                }
+            }
         }
     }
 }

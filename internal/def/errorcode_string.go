@@ -29,26 +29,27 @@ func _() {
 	_ = x[ErrLoginDenied - -118]
 	_ = x[ErrDingtalkConfig - -119]
 	_ = x[ErrLdapConfig - -120]
-	_ = x[ErrGroupExportDatabusFailed - -114]
-	_ = x[ErrInvalidParam - -115]
+	_ = x[ErrGroupExportDatabusFailed - -121]
+	_ = x[ErrInvalidParam - -122]
+	_ = x[ErrCannotCreateExcel - -123]
 	_ = x[ErrCodeEnd - -1000]
 }
 
 const (
 	_ErrorCode_name_0 = "ErrCodeEnd"
-	_ErrorCode_name_1 = "LDAP配置错误，请联系管理员钉钉登录配置错误，请联系管理员暂无登录权限，请联系管理员登录失败，请联系管理员登录参数错误配置表格式异常，请先检查读取配置失败，请检查数据仓库配置Mysql导表失败，请检查配置格式Redis导表失败，请检查配置格式请先配置数据仓库项目不存在表格不存在Sheet名称错误权限不足配置表头格式错误您尚未登录或者登录已过期两次输入密码不一致邮箱格式错误密码错误用户不存在ErrCodeStart"
+	_ErrorCode_name_1 = "正式环境不允许创建Excel请求参数错误Databus更新配置失败，请检查连接配置LDAP配置错误，请联系管理员钉钉登录配置错误，请联系管理员暂无登录权限，请联系管理员登录失败，请联系管理员登录参数错误配置表格式异常，请先检查读取配置失败，请检查数据仓库配置Mysql导表失败，请检查配置格式Redis导表失败，请检查配置格式请先配置数据仓库项目不存在表格不存在Sheet名称错误权限不足配置表头格式错误您尚未登录或者登录已过期两次输入密码不一致邮箱格式错误密码错误用户不存在ErrCodeStart"
 )
 
 var (
-	_ErrorCode_index_1 = [...]uint16{0, 37, 82, 121, 154, 172, 208, 256, 297, 338, 362, 377, 392, 409, 421, 445, 481, 508, 526, 538, 553, 565}
+	_ErrorCode_index_1 = [...]uint16{0, 32, 50, 99, 136, 181, 220, 253, 271, 307, 355, 396, 437, 461, 476, 491, 508, 520, 544, 580, 607, 625, 637, 652, 664}
 )
 
 func (i ErrorCode) String() string {
 	switch {
 	case i == -1000:
 		return _ErrorCode_name_0
-	case -120 <= i && i <= -100:
-		i -= -120
+	case -123 <= i && i <= -100:
+		i -= -123
 		return _ErrorCode_name_1[_ErrorCode_index_1[i]:_ErrorCode_index_1[i+1]]
 	default:
 		return "ErrorCode(" + strconv.FormatInt(int64(i), 10) + ")"

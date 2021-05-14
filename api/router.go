@@ -53,4 +53,5 @@ func RegisterSheet(e *bm.Engine, auth Auth, server SheetBMServer) {
 		s.POST("sheet_list", sheetSheetList)
 		s.POST("export_prod", sheetExportProdExcel)
 	}
+	e.POST("excel/export_all_sheets", sheetExportAllSheets)
 }

@@ -1,7 +1,7 @@
 all:clean protos
 
 protos:
-	protoc --go_out=plugins=grpc:. *.proto
+	protoc --proto_path=. --gofast_out=plugins=grpc:. *.proto
 
 clean:
 	-rm *.pb.go

@@ -21,6 +21,7 @@ message UpdateConfigReq {
   string name = 1;
   tableHead head = 2;
   string content = 3;
+  string dingtalkID = 4;
 }
 
 message UpdateConfigResp {

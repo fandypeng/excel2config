@@ -4,13 +4,12 @@ import (
 	"context"
 	"errors"
 	"excel2config/internal/dao"
-	"excel2config/internal/def"
 	"excel2config/internal/model"
-	"github.com/go-kratos/kratos/pkg/ecode"
 	"github.com/go-kratos/kratos/pkg/log"
 	"github.com/gorilla/websocket"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type Server struct {
@@ -33,8 +32,10 @@ var (
 func New(dao dao.Dao) *Server {
 	wss := &Server{
 		Server: &http.Server{
-			Addr:    ":8001",
-			Handler: nil,
+			Addr:         ":8001",
+			Handler:      nil,
+			ReadTimeout:  time.Minute,
+			WriteTimeout: time.Minute,
 		},
 		d: dao,
 	}
@@ -53,6 +54,7 @@ func New(dao dao.Dao) *Server {
 func (wss *Server) defaultHandler() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Info("new ws connect")
 		userInfo, gridKey, err := wss.authConn(r)
 		if err != nil || userInfo == nil {
 			log.Errorw(context.TODO(), "ws conn auth failed: ", err)
@@ -63,6 +65,8 @@ func (wss *Server) defaultHandler() *http.ServeMux {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			log.Errorw(context.TODO(), "ws conn upgrade error: ", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
 			return
 		}
 		client := NewClient(conn, gridKey)
@@ -78,7 +82,7 @@ func (wss *Server) authConn(r *http.Request) (userInfo *model.UserInfo, gridKey 
 	values := r.URL.Query()
 	gridKey = values.Get("g")
 	if gridKey == "" {
-		log.Errorw(context.TODO(), "ws conn without gridKey")
+		log.Errorw(context.TODO(), "ws conn without gridKey", gridKey, "userInfo", userInfo)
 		err = errors.New("gridKey not specified")
 		return
 	}
@@ -86,7 +90,7 @@ func (wss *Server) authConn(r *http.Request) (userInfo *model.UserInfo, gridKey 
 	path := r.URL.Path
 	pathInfo := strings.Split(path, "/")
 	if len(pathInfo) < 5 {
-		log.Errorw(context.TODO(), "ws conn auth param error, path: ", path)
+		log.Errorw(context.TODO(), "ws conn auth param error, path", path)
 		return
 	}
 	uid := pathInfo[2]
@@ -94,7 +98,7 @@ func (wss *Server) authConn(r *http.Request) (userInfo *model.UserInfo, gridKey 
 	ctx := context.TODO()
 	excelInfo, err := wss.d.ExcelInfo(ctx, gridKey)
 	if err != nil {
-		log.Errorw(context.TODO(), "ws conn gridKey not exist, gridKey: ", gridKey)
+		log.Errorw(context.TODO(), "ws conn gridKey not exist, gridKey", gridKey)
 		err = errors.New("excel is not exist")
 		return
 	}
@@ -119,10 +123,13 @@ func (wss *Server) authConn(r *http.Request) (userInfo *model.UserInfo, gridKey 
 
 	serverToken, err := wss.d.GetToken(context.TODO(), uid)
 	if err != nil {
+		log.Errorw(context.TODO(), "get token error, uid", uid, " gid", gid, "err", err)
+		err = errors.New("get token failed")
 		return
 	}
 	if token != serverToken {
-		err = ecode.Int(int(def.ErrNeedLogin))
+		log.Errorw(context.TODO(), "token does not confirmed, uid", uid, " token", token, "serverToken", serverToken)
+		err = errors.New("token expired")
 		return
 	}
 	userInfo, err = wss.d.GetUserByUid(context.TODO(), uid)

@@ -69,6 +69,8 @@ github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1m
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/fandypeng/e2cdatabus v0.0.0-20210401100712-4f1331033c0e h1:domMLH10x8U8mi8b3ug6G4uDKi1AKiu9XRWTkeDwhfE=
 github.com/fandypeng/e2cdatabus v0.0.0-20210401100712-4f1331033c0e/go.mod h1:T+AbXxH7Equyt3efrcdXNYsHN1jJQWroR29qhtor8Ws=
+github.com/fandypeng/e2cdatabus v1.0.2-0.20210510114020-f9c9364f4df4 h1:xpp8w9f22HcgYTVnhrwAnPVZ8DErzExzt+R/OH2lpig=
+github.com/fandypeng/e2cdatabus v1.0.2-0.20210510114020-f9c9364f4df4/go.mod h1:pBiKPN5kZKatLkcg3r9dqmgC3/wBc+3NSDwP4FeSfzY=
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=

@@ -13,7 +13,7 @@ const (
 	writeWait = 60 * time.Second
 
 	// Time allowed to read the next pong message from the peer.
-	pongWait = 20 * time.Second
+	pongWait = time.Minute
 
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = 10 * time.Second
@@ -60,14 +60,15 @@ func (c *Client) setReadOpts() {
 func (c *Client) waitAndWrite() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
+		log.Infow(context.TODO(), "write groutine exited, uid", c.uid)
 		ticker.Stop()
-		c.Close()
 	}()
 	for {
 		select {
 		case message, ok := <-c.msgs:
 			if !ok {
 				log.Warn("ws conn msg channel closed")
+				break
 			}
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			err := c.Conn.WriteMessage(websocket.TextMessage, message)
@@ -76,7 +77,7 @@ func (c *Client) waitAndWrite() {
 				return
 			}
 		case <-ticker.C:
-			log.Infow(context.TODO(), "uid", c.uid, "msg", "ticker triggered")
+			log.Infow(context.TODO(), "uid", c.uid, "client", c, "msg", "ticker triggered")
 			if c.isClosed {
 				break
 			}
@@ -87,6 +88,9 @@ func (c *Client) waitAndWrite() {
 				return
 			}
 		}
+		if c.isClosed {
+			break
+		}
 	}
 }
 
@@ -95,7 +99,9 @@ func (c *Client) Close() {
 	defer c.Unlock()
 	c.Conn.Close()
 	c.isClosed = true
+	close(c.msgs)
 	c.msgs = nil
+	mgr.DelClient(c.uid)
 }
 
 func (c *Client) GetUid() string {

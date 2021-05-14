@@ -11,13 +11,17 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"log"
+	"math"
 )
+
+const _abortIndex int8 = math.MaxInt8 / 2
 
 // implement from credentials.PerRPCCredentials
 
 type Auth struct {
 	appKey    string
 	appSecret string
+	handlers  []grpc.UnaryServerInterceptor
 }
 
 func New(appKey, appSecret string) *Auth {
@@ -63,6 +67,36 @@ func (a *Auth) AccessControl() grpc.UnaryServerInterceptor {
 		}
 		return handler(ctx, req)
 	}
+}
+
+func (a *Auth) Interceptor(ctx context.Context, req interface{}, args *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	var (
+		i     int
+		chain grpc.UnaryHandler
+	)
+	n := len(a.handlers)
+	if n == 0 {
+		return handler(ctx, req)
+	}
+	chain = func(ictx context.Context, ireq interface{}) (interface{}, error) {
+		if i == n-1 {
+			return handler(ctx, req)
+		}
+		i++
+		return a.handlers[i](ictx, ireq, args, chain)
+	}
+	return a.handlers[0](ctx, req, args, chain)
+}
+
+func (a *Auth) Use(handlers ...grpc.UnaryServerInterceptor) {
+	finalSize := len(a.handlers) + len(handlers)
+	if finalSize >= int(_abortIndex) {
+		panic("rpc server use too many handlers")
+	}
+	mergedHandlers := make([]grpc.UnaryServerInterceptor, finalSize)
+	copy(mergedHandlers, a.handlers)
+	copy(mergedHandlers[len(a.handlers):], handlers)
+	a.handlers = mergedHandlers
 }
 
 //aes加密 分组模式ctr

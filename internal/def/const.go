@@ -27,15 +27,17 @@ const (
 	ErrLoginDenied              ErrorCode = -118 //暂无登录权限，请联系管理员
 	ErrDingtalkConfig           ErrorCode = -119 //钉钉登录配置错误，请联系管理员
 	ErrLdapConfig               ErrorCode = -120 //LDAP配置错误，请联系管理员
-	ErrGroupExportDatabusFailed ErrorCode = -114 //Databus更新配置失败，请检查连接配置
-	ErrInvalidParam             ErrorCode = -115 //请求参数错误
-	ErrCannotCreateExcel        ErrorCode = -116 //正式环境不允许创建Excel
+	ErrGroupExportDatabusFailed ErrorCode = -121 //Databus更新配置失败，请检查连接配置
+	ErrInvalidParam             ErrorCode = -122 //请求参数错误
+	ErrCannotCreateExcel        ErrorCode = -123 //正式环境不允许创建Excel
 	ErrCodeEnd                  ErrorCode = -1000
 )
 
 const (
 	DaySeconds   = 86400
 	MonthSeconds = DaySeconds * 30
+
+	NeedCompressSheetRows = 200 //需要触发压缩的sheet行数
 )
 
 const (
@@ -49,4 +51,9 @@ const (
 	DsnTypeMysql   = 2
 	DsnTypeMongodb = 3
 	DsnTypeRpc     = 4
+)
+
+const (
+	RoleTypeAdmin     = 1 // 管理员
+	RoleTypeDeveloper = 2 // 开发者
 )

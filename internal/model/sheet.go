@@ -22,7 +22,7 @@ type CellType struct { // celltype 单元格值格式
 		Bl int         `json:"bl,omitempty" bson:"bl,omitempty"`
 		Cl int         `json:"cl,omitempty" bson:"cl,omitempty"`
 		Fc string      `json:"fc,omitempty" bson:"fc,omitempty"`
-		Ff string      `json:"ff,omitempty" bson:"ff,omitempty"`
+		Ff int      `json:"ff,omitempty" bson:"ff,omitempty"`
 		Fs interface{} `json:"fs,omitempty" bson:"fs,omitempty"`
 		It int         `json:"it,omitempty" bson:"it,omitempty"`
 		Un int         `json:"un,omitempty" bson:"un,omitempty"`

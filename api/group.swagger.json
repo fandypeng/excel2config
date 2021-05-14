@@ -651,6 +651,9 @@
                 },
                 "UnionGroupId": {
                     "type": "string"
+                },
+                "AccessToken": {
+                    "type": "string"
                 }
             }
         },
@@ -756,7 +759,7 @@
                     "type": "string"
                 },
                 "role": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         }

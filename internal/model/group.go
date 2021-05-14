@@ -9,14 +9,15 @@ type GroupInfo struct {
 	AddTime        int64            `json:"addTime,omitempty" bson:"addTime"`
 	Owner          string           `json:"owner,omitempty" bson:"owner"`
 	Members        []SimpleUserInfo `json:"members" bson:"members"`
-	RedisDSN       string           `json:"RedisDSN,omitempty" bson:"RedisDSN,omitempty"`
-	RedisPassword  string           `json:"RedisPassword,omitempty" bson:"RedisPassword,omitempty"`
-	RedisKeyPrefix string           `json:"RedisKeyPrefix,omitempty" bson:"RedisKeyPrefix,omitempty"`
-	MysqlDSN       string           `json:"MysqlDSN,omitempty" bson:"MysqlDSN,omitempty"`
-	MongodbDSN     string           `json:"MongodbDSN,omitempty" bson:"MongodbDSN,omitempty"`
-	GRpcDsn        string           `json:"GRpcDsn,omitempty" bson:"GRpcDsn,omitempty"`
-	GRpcAppKey     string           `json:"GRpcAppKey,omitempty" bson:"GRpcAppKey,omitempty"`
-	GRpcAppSecret  string           `json:"GRpcAppSecret,omitempty" bson:"GRpcAppSecret,omitempty"`
+	RedisDSN       string           `json:"RedisDSN,omitempty" bson:"RedisDSN"`
+	RedisPassword  string           `json:"RedisPassword,omitempty" bson:"RedisPassword"`
+	RedisKeyPrefix string           `json:"RedisKeyPrefix,omitempty" bson:"RedisKeyPrefix"`
+	MysqlDSN       string           `json:"MysqlDSN,omitempty" bson:"MysqlDSN"`
+	MongodbDSN     string           `json:"MongodbDSN,omitempty" bson:"MongodbDSN"`
+	GRpcDsn        string           `json:"GRpcDsn,omitempty" bson:"GRpcDsn"`
+	GRpcAppKey     string           `json:"GRpcAppKey,omitempty" bson:"GRpcAppKey"`
+	GRpcAppSecret  string           `json:"GRpcAppSecret,omitempty" bson:"GRpcAppSecret"`
 	IsDev          bool             `json:"IsDev,omitempty" bson:"IsDev"`
-	UnionGroupId   string           `json:"UnionGroupId,omitempty" bson:"UnionGroupId,omitempty"`
+	UnionGroupId   string           `json:"UnionGroupId,omitempty" bson:"UnionGroupId"`
+	AccessToken    string           `json:"AccessToken,omitempty" bson:"AccessToken"`
 }

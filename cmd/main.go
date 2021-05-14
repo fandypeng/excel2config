@@ -14,7 +14,7 @@ import (
 
 func main() {
 	flag.Parse()
-	log.Init(&log.Config{Stdout: true, Dir: "./logs"}) // debug flag: log.dir={path}
+	log.Init(&log.Config{Stdout: false, Dir: "./logs"}) // debug flag: log.dir={path}
 	defer log.Close()
 	log.Info("excel2config start")
 	paladin.Init()

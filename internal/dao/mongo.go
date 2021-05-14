@@ -184,31 +184,56 @@ func (d *dao) UpdateGridValue(ctx context.Context, gridKey string, req *model.Up
 }
 
 func (d *dao) UpdateGridMulti(ctx context.Context, gridKey string, req *model.UpdateRV) (err error) {
-	subIndex := 0
 	cs, ce := req.Range.Column[0], req.Range.Column[1]
 	rs, re := req.Range.Row[0], req.Range.Row[1]
-	for c := cs; c <= ce; c++ {
-		index := 0
-		for r := rs; r <= re; r++ {
-			customReq := &model.UpdateV{
-				Cell: model.Cell{
-					C: model.FlexInt(c),
-					R: model.FlexInt(r),
-					V: req.V[index][subIndex],
-				},
-				I: req.I,
-			}
-			log.Errorw(ctx, "c", c+1, "r", r+1, "v", req.V[index][subIndex], "msg", "update grid")
-			err = d.UpdateGridValue(ctx, gridKey, customReq)
-			if err != nil {
-				log.Errorw(ctx, "err", err, "req", customReq, "msg", "update error")
-				return
-			}
-			index++
-		}
-		subIndex++
+	sheets, err := d.LoadExcelSheet(ctx, gridKey, []string{req.I})
+	if err != nil {
+		return
 	}
-	return err
+	cellDatas := sheets[req.I]
+	cellMap := make(map[int]map[int]model.Cell)
+	for _, cell := range cellDatas {
+		r := int(cell.R)
+		c := int(cell.C)
+		if _, ok := cellMap[r]; !ok {
+			cellMap[r] = make(map[int]model.Cell)
+		}
+		cellMap[r][c] = cell
+	}
+	index := 0
+	for c := cs; c <= ce; c++ {
+		subIndex := 0
+		for r := rs; r <= re; r++ {
+			subMap, exist := cellMap[r]
+			if !exist {
+				subMap = make(map[int]model.Cell)
+			}
+			subMap[c] = model.Cell{
+				C: model.FlexInt(c),
+				R: model.FlexInt(r),
+				V: req.V[subIndex][index],
+			}
+			cellMap[r] = subMap
+			subIndex++
+		}
+		index++
+	}
+	cells := make([]model.Cell, 0)
+	for _, subMap := range cellMap {
+		for _, cell := range subMap {
+			if model.IsEmptyCell(cell) {
+				continue
+			}
+			cells = append(cells, cell)
+		}
+	}
+	err = d.UpdateGridCommon(ctx, gridKey, &model.UpdateCommon{
+		T: "",
+		I: req.I,
+		K: "celldata",
+		V: cells,
+	})
+	return nil
 }
 
 func (d *dao) UpdateGridConfig(ctx context.Context, gridKey string, req *model.UpdateCG) (err error) {
@@ -498,8 +523,12 @@ func (d *dao) HideOrShowSheet(ctx context.Context, gridKey string, req *model.Hi
 		filter := bson.M{"index": req.I}
 		_, err = c.UpdateMany(ctx, filter, bson.M{"$set": bson.M{"hide": req.V, "status": 0}})
 		if err == nil {
-			filter := bson.M{"index": req.Cur}
-			_, err = c.UpdateOne(ctx, filter, bson.M{"$set": bson.M{"status": 1}})
+			// 判断是否已经有status=1的sheet
+			res := c.FindOne(ctx, bson.M{"status": 1})
+			if res.Err() == mongo.ErrNilDocument {
+				filter := bson.M{"index": req.Cur}
+				_, err = c.UpdateOne(ctx, filter, bson.M{"$set": bson.M{"status": 1}})
+			}
 		}
 	case "show":
 		filter := bson.M{"status": 1}

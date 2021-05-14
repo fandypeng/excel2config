@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/aws/aws-sdk-go v1.35.8 // indirect
-	github.com/fandypeng/e2cdatabus v0.0.0-20210401100712-4f1331033c0e
+	github.com/fandypeng/e2cdatabus v1.0.2-0.20210510114020-f9c9364f4df4
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-kratos/kratos v0.5.1-0.20200526160825-521d240568d0
 	github.com/go-ldap/ldap/v3 v3.2.4
@@ -16,10 +16,9 @@ require (
 	github.com/gorilla/sessions v1.2.1
 	github.com/gorilla/websocket v1.4.2
 	github.com/klauspost/compress v1.11.1 // indirect
-	github.com/prometheus/common v0.9.1
+	github.com/prometheus/common v0.9.1 // indirect
 	go.mongodb.org/mongo-driver v1.4.2
 	golang.org/x/crypto v0.0.0-20201012173705-84dcc777aaee // indirect
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 	golang.org/x/sync v0.0.0-20201008141435-b3e1573b7520 // indirect
 	golang.org/x/text v0.3.4
 	google.golang.org/genproto v0.0.0-20201104152603-2e45c02ce95c

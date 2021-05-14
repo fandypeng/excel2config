@@ -12,7 +12,6 @@ import (
 	"golang.org/x/text/encoding/charmap"
 	"io/ioutil"
 	"net/url"
-	"sync"
 	"time"
 )
 
@@ -22,8 +21,6 @@ type service struct {
 	*Client
 	d        dao.Dao
 	handlers map[string]handler
-
-	sync.RWMutex
 }
 
 func newService(c *Client, d dao.Dao) *service {
@@ -60,6 +57,7 @@ func (s *service) readAndServe() {
 	defer func() {
 		s.Close()
 		s.remDeletedSheetWhenLeave()
+		log.Infow(context.TODO(), "read groutine exited, uid", s.uid)
 	}()
 	s.setReadOpts()
 	for {
@@ -114,9 +112,7 @@ func (s *service) handleRequest(ctx context.Context, reqmsg []byte) {
 		rsp.Type = 1
 	}
 
-	s.RLock()
 	handler, ok := s.handlers[msg.T]
-	s.RUnlock()
 	if ok {
 		handler(ctx, reqmsg)
 	}

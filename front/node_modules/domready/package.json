@@ -1,0 +1,25 @@
+{
+  "name": "domready",
+  "description": "modern domready",
+  "version": "1.0.8",
+  "homepage": "https://github.com/ded/domready",
+  "author": "Dustin Diaz <dustin@dustindiaz.com> (http://dustindiaz.com)",
+  "keywords": [
+    "ender",
+    "domready",
+    "dom"
+  ],
+  "main": "./ready.js",
+  "ender": "./src/ender.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ded/domready.git"
+  },
+  "devDependencies": {
+    "smoosh": ">=0.3.0"
+  }
+
+,"_resolved": "https://registry.npmjs.org/domready/-/domready-1.0.8.tgz"
+,"_integrity": "sha1-kfJS5Ze2Wvd+dFriTdAYXV4m1Yw="
+,"_from": "domready@1.0.8"
+}

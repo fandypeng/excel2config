@@ -58,7 +58,7 @@ func (d *dao) GetUserByUid(ctx context.Context, uid string) (userInfo *model.Use
 	return
 }
 
-func (d *dao) AddUser(ctx context.Context, email, passwd, name string, loginType int) (userInfo *model.UserInfo, err error) {
+func (d *dao) AddUser(ctx context.Context, email, passwd, name string, loginType int, openId string) (userInfo *model.UserInfo, err error) {
 	c := d.mongo.Database(dbname).Collection(tableUserList)
 	userInfo = &model.UserInfo{
 		UserName:  name,
@@ -67,6 +67,7 @@ func (d *dao) AddUser(ctx context.Context, email, passwd, name string, loginType
 		RegTime:   time.Now().Unix(),
 		Avatar:    helper.GetRandomAvatar(),
 		LoginType: loginType,
+		OpenId:    openId,
 	}
 	buser, err := d.format2Bson(userInfo)
 	if err != nil {
@@ -77,6 +78,25 @@ func (d *dao) AddUser(ctx context.Context, email, passwd, name string, loginType
 		return
 	}
 	userInfo.Uid = inRes.InsertedID.(primitive.ObjectID).Hex()
+	return
+}
+
+func (d *dao) SaveUser(ctx context.Context, userInfo *model.UserInfo) (err error) {
+	c := d.mongo.Database(dbname).Collection(tableUserList)
+	uid, err := primitive.ObjectIDFromHex(userInfo.Uid)
+	if err != nil {
+		return
+	}
+	var formatInfo = *userInfo
+	formatInfo.Uid = ""
+	buser, err := d.format2Bson(formatInfo)
+	if err != nil {
+		return
+	}
+	_, err = c.UpdateOne(ctx, bson.M{"_id": uid}, bson.M{"$set": buser})
+	if err != nil {
+		return
+	}
 	return
 }
 
