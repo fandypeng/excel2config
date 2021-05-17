@@ -9,6 +9,5 @@
     * [发布与回滚](deploy_rollback.md)
     * [同步正式环境](sync_prod.md)
     
-* [部署](readme.md)
-* [外部API](readme.md)
+* [部署](deploy.md)
 

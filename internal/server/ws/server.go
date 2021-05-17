@@ -5,7 +5,9 @@ import (
 	"errors"
 	"excel2config/internal/dao"
 	"excel2config/internal/model"
+	"github.com/go-kratos/kratos/pkg/conf/paladin"
 	"github.com/go-kratos/kratos/pkg/log"
+	xtime "github.com/go-kratos/kratos/pkg/time"
 	"github.com/gorilla/websocket"
 	"net/http"
 	"strings"
@@ -29,26 +31,40 @@ var (
 	}
 )
 
-func New(dao dao.Dao) *Server {
-	wss := &Server{
+func New(dao dao.Dao) (wss *Server, err error) {
+	var (
+		cfg struct {
+			Addr         string
+			ReadTimeout  xtime.Duration
+			WriteTimeout xtime.Duration
+		}
+		ct paladin.TOML
+	)
+	if err = paladin.Get("http.toml").Unmarshal(&ct); err != nil {
+		return
+	}
+	if err = ct.Get("WebSocket").UnmarshalTOML(&cfg); err != nil {
+		return
+	}
+	wss = &Server{
 		Server: &http.Server{
-			Addr:         ":8001",
+			Addr:         cfg.Addr,
 			Handler:      nil,
-			ReadTimeout:  time.Minute,
-			WriteTimeout: time.Minute,
+			ReadTimeout:  time.Duration(cfg.ReadTimeout),
+			WriteTimeout: time.Duration(cfg.WriteTimeout),
 		},
 		d: dao,
 	}
 	wss.Handler = wss.defaultHandler()
 	go func() {
-		log.Info("websocket server listen at: 8001")
+		log.Info("websocket server listen at: " + cfg.Addr)
 		if err := wss.Server.ListenAndServe(); err != nil {
 			panic("websocket server start failed")
 		}
 	}()
 	mgr = new(ClientMgr)
 	mgr.Clients = make(map[string]*Client)
-	return wss
+	return
 }
 
 func (wss *Server) defaultHandler() *http.ServeMux {

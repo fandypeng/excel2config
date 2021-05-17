@@ -75,7 +75,16 @@ func InitApp() (*App, func(), error) {
 		cleanup()
 		return nil, nil, err
 	}
-	wsServer := ws.New(daoDao)
+	wsServer, err := ws.New(daoDao)
+	if err != nil {
+		cleanup6()
+		cleanup5()
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
 	app, cleanup7, err := NewApp(serviceService, engine, server, wsServer)
 	if err != nil {
 		cleanup6()

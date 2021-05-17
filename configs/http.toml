@@ -2,3 +2,8 @@
     addr = "0.0.0.0:8000"
     timeout = "10s"
     crossDomains = [ "http://127.0.0.1:3000", "http://172.18.2.123:9528", "http://localhost:3000",  "http://localhost:9528", "http://e2c.fandypeng.com" ]
+
+[WebSocket]
+    addr = "0.0.0.0:8001"
+    readTimeout = "5s"
+    writeTimeout = "5s"

@@ -55,8 +55,8 @@
 
       <div class="tips">
         <span style="margin-right:20px;">
-          没有帐号？请使用钉钉工作台登录
-<!--          <el-link href="#/reg" type="primary"> 点击注册 </el-link>-->
+          没有帐号？
+          <el-link href="#/reg" type="primary"> 点击注册 </el-link>
           </span>
       </div>
 
