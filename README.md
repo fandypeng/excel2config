@@ -41,4 +41,4 @@ Excel2Config对比其他解决方案：
 
 # 详细文档
 
-请参阅[详细文档](doc/readme.md)
+请参阅[详细文档](http://e2c.fandypeng.com/doc)
